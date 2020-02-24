@@ -1,10 +1,9 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BCP_Facial.Data.Migrations
+namespace BCP_Facial.Migrations
 {
-    public partial class CreateIdentitySchema : Migration
+    public partial class init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -52,7 +51,7 @@ namespace BCP_Facial.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     RoleId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -73,7 +72,7 @@ namespace BCP_Facial.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(nullable: false),
                     ClaimType = table.Column<string>(nullable: true),
                     ClaimValue = table.Column<string>(nullable: true)
@@ -153,6 +152,77 @@ namespace BCP_Facial.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "BCPUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Deleted = table.Column<bool>(nullable: false),
+                    DateCreated = table.Column<DateTime>(nullable: false),
+                    Email = table.Column<string>(nullable: true),
+                    Name = table.Column<string>(nullable: true),
+                    Status = table.Column<int>(nullable: false),
+                    AspUserId = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BCPUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BCPUsers_AspNetUsers_AspUserId",
+                        column: x => x.AspUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Classes",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Deleted = table.Column<bool>(nullable: false),
+                    DateCreated = table.Column<DateTime>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    PersonGroup = table.Column<string>(nullable: true),
+                    LecturerId = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Classes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Classes_BCPUsers_LecturerId",
+                        column: x => x.LecturerId,
+                        principalTable: "BCPUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ClassAllocations",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    PersonId = table.Column<string>(nullable: true),
+                    ClassId = table.Column<string>(nullable: true),
+                    StudentId = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClassAllocations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ClassAllocations_Classes_ClassId",
+                        column: x => x.ClassId,
+                        principalTable: "Classes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ClassAllocations_BCPUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "BCPUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -191,6 +261,33 @@ namespace BCP_Facial.Data.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BCPUsers_AspUserId",
+                table: "BCPUsers",
+                column: "AspUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BCPUsers_Email",
+                table: "BCPUsers",
+                column: "Email",
+                unique: true,
+                filter: "[Email] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClassAllocations_ClassId",
+                table: "ClassAllocations",
+                column: "ClassId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClassAllocations_StudentId",
+                table: "ClassAllocations",
+                column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Classes_LecturerId",
+                table: "Classes",
+                column: "LecturerId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -211,7 +308,16 @@ namespace BCP_Facial.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ClassAllocations");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Classes");
+
+            migrationBuilder.DropTable(
+                name: "BCPUsers");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
