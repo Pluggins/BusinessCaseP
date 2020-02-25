@@ -20,7 +20,22 @@ namespace BCP_Facial.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Login");
+            } else
+            {
+                if (User.IsInRole("ADMIN"))
+                {
+                    return RedirectToAction("Index", "Lecturer");
+                } else if (User.IsInRole("LECTURER"))
+                {
+                    return RedirectToAction("Index", "MyClass");
+                } else
+                {
+                    return RedirectToAction("Index", "MyAttendance");
+                }
+            }
         }
 
         public IActionResult Privacy()

@@ -199,6 +199,8 @@ namespace BCP_Facial.Controllers.Api
                 }
             }
 
+            await _signInManager.SignOutAsync();
+            await _signInManager.SignInAsync(aspUser.User.AspUser, true);
             output.Result = "OK";
             return output;
         }

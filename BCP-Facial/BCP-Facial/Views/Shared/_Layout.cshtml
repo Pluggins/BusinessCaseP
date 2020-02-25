@@ -20,9 +20,20 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item mr-3"><a href="/" class="nav-link"><i class="fas fa-arrow-circle-left mr-2"></i>Back</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link disabled">Manage Events</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link disabled">Manage Vendors</a></li>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @if (User.IsInRole("ADMIN"))
+                        {
+                            <li class="nav-item"><a href="/Lecturer" class="nav-link">Lecturers</a></li>
+                            <li class="nav-item"><a href="/Class" class="nav-link">Classes</a></li>
+                        }
+
+                        @if (User.IsInRole("LECTURER"))
+                        {
+                            <li class="nav-item"><a href="/MyClass" class="nav-link">My Class</a></li>
+                        }
+                        <li class="nav-item"><a href="/MyAttendance" class="nav-link">My Attendance</a></li>
+                    }
 
 
                     @if (User.Identity.IsAuthenticated)
@@ -51,7 +62,7 @@
         </div>
             <div class="bg-dark text-white text-center">
                 <div class="text-center" style="padding: 10px 0px;">
-                    | Manage your attendance in a never imagined way. |
+                    | Manage your attendance in an unimaginable way. |
                 </div>
             </div>
         </div>
