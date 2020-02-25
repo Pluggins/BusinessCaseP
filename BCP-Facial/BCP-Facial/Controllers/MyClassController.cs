@@ -12,7 +12,14 @@ namespace BCP_Facial.Controllers
         [Authorize]
         public IActionResult Index()
         {
-            return View();
+            if (User.IsInRole("LECTURER"))
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Index", "Home");
+            }
         }
     }
 }

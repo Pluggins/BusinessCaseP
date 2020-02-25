@@ -12,7 +12,13 @@ namespace BCP_Facial.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            if (User.IsInRole("ADMIN"))
+            {
+                return View();
+            } else
+            {
+                return RedirectToAction("Index", "Home");
+            }
         }
     }
 }
