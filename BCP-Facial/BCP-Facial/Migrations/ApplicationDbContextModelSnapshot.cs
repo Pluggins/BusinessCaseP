@@ -106,6 +106,9 @@ namespace BCP_Facial.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -222,6 +225,22 @@ namespace BCP_Facial.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "EF7A8FDE-0005-4085-B26F-37D7278BE768",
+                            ConcurrencyStamp = "0acd269f-e764-40d5-8cf3-17f293482a1e",
+                            Name = "LECTURER",
+                            NormalizedName = "LECTURER"
+                        },
+                        new
+                        {
+                            Id = "4FBD4989-DF6E-479A-AE7D-641700E09A84",
+                            ConcurrencyStamp = "5a262991-0ec0-4a7f-9074-06306d2a591b",
+                            Name = "ADMIN",
+                            NormalizedName = "ADMIN"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

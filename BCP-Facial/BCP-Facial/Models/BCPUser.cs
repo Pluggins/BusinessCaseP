@@ -20,6 +20,7 @@ namespace BCP_Facial.Models
          * 1 - User
          * 2 - Lecturer
          * 3 - Admin
+         * 4 - Lecturer & Admin
          */
         public int Status { get; set; }
         [Required]

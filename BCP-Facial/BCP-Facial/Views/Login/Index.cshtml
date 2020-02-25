@@ -1,0 +1,114 @@
+﻿
+@{
+    ViewData["Title"] = "Login Portal";
+}
+    <div class="theme-title">
+        <div>
+            Login Portal
+        </div>
+    </div>
+    <div style="padding: 60px 0px;">
+        <div class="text-center" style="font-size: 36px;">
+            User/Staff Login
+            <div style="font-size:14px;">
+                Please log in using your personal credentials.<br />
+                Not yet registered? <a href="/Register">Click here</a> to register!
+            </div>
+        </div>
+        <div class="row">
+            <div class="col"></div>
+            <div class="col-5" style="margin: 20px 0px;">
+                <form onsubmit="return login();">
+                    <div class="form-group">
+                        <label for="email" style="font-size: 20px;">Email:</label><br>
+                        <input class="form-control shadow-none" type="email" name="username" id="Email" style="font-size: 20px; width: 100%;" placeholder="Your email here" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" style="font-size: 20px;">Password:</label><br>
+                        <input class="form-control shadow-none" type="password" name="password" id="Password" style="font-size: 20px; width: 100%;" placeholder="Your password here" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <div id="errorFrame" style="display:none;">
+                                <div id="errorMsg" style="text-align:center !important; padding:1px; margin-bottom:10px; border:1px solid black; background-color:#ff8383;">
+                                    Error: Wrong Password
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                    <div style="margin-top: 35px; text-align: center;">
+                        <button type="submit" class="btn btn-primary shadow-none" id="loginButton"><span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span></button>
+                    </div>
+                </form>
+            </div>
+            <div class="col"></div>
+        </div>
+    </div>
+
+<script>
+    var loggingIn = false;
+
+    function login() {
+        if (!loggingIn) {
+            loggingIn = true;
+            $('#loginButtonContent').html('<i class="fas fa-spinner fa-spin"></i>');
+            $('#loginButton').attr('class', 'btn btn-primary disabled');
+            $.ajax({
+                url: '/Api/User/WebLogin',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'Email': $('#Email').val(), 'Password': $('#Password').val() }),
+                success: function (responds) {
+                    if (responds.result == "OK") {
+                        $('#errorFrame').attr('style', 'display:none;')
+                        $('#loginButtonContent').html('Logged In');
+                        $('#loginButton').attr('class', 'btn btn-success disabled');
+                        checkUser();
+                    } 
+                },
+                error: function (request, status, error) {
+                    var json = JSON.parse(request.responseText);
+                    if (json.result == 'INPUT_IS_NULL') {
+                        $('#loginButtonContent').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#loginButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Please login with your email and password.');
+                        loggingIn = false;
+                    } else if (json.result == 'USER_NOT_FOUND') {
+                        $('#loginButtonContent').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#loginButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Email/password do not match.');
+                        loggingIn = false;
+                    } else if (json.result == 'PASSWORD_MISMATCH') {
+                        $('#loginButtonContent').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#loginButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Email/password do not match.');
+                        loggingIn = false;
+                    } else {
+                        $('#loginButtonContent').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                    }
+                }
+            });
+        }
+        return false;
+    }
+
+    function checkUser() {
+        $.ajax({
+            url: '/Api/User/CheckRole',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            success: function () {
+                setTimeout(function () { window.location.replace("/"); }, 2000);
+            }
+        });
+    }
+</script>

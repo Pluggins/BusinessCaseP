@@ -1,0 +1,124 @@
+﻿@{ 
+    ViewData["Title"] = "Registration";
+}
+
+<div class="theme-title">
+    <div>
+        New User Registration
+    </div>
+</div>
+<div style="padding:80px 0px; padding-bottom:70px;">
+    <div class="row">
+        <div class="col-3"></div>
+        <div class="col-6">
+            <form onsubmit="return register();">
+                <div style="border: 2px dashed black; background-color:#fdd8c7; padding: 20px 80px; padding-bottom:30px;">
+                    <div style="text-align: center; font-size: 36px;">Registration Form</div>
+                    <div style="text-align:center; margin-bottom:20px; line-height:20px; font-size:14px;">
+                        Please fill in your particulars to proceed.<br />
+                        Already registered? <a href="/Login">Click here</a> to login.
+                    </div>
+                    <div style="font-size: 17px;margin-bottom: 5px;">
+                        <label for="Email">Email:</label>
+                        <input class="form-control" id="Email" type="email" required/>
+                    </div>
+                    <div style="font-size: 17px;margin-bottom: 5px;">
+                        <label for="FName">Full Name:</label>
+                        <input class="form-control" id="FName" type="text" required/>
+                    </div>
+                    <div style="font-size:17px; margin-bottom:5px;">
+                        <label for="Password">Password:</label>
+                        <input class="form-control" id="Password" type="password" required/>
+                    </div>
+                    <div style="font-size:17px; margin-bottom:20px;">
+                        <label for="CPassword">Confirm Password:</label>
+                        <input class="form-control" id="CPassword" type="password" required/>
+                    </div>
+                    <div style="text-align:center;">
+                        <div class="row">
+                            <div class="col-1"></div>
+                            <div class="col-10">
+                                <div id="errorFrame" style="display:none;">
+                                    <div id="errorMsg" style="text-align:center !important; padding:1px; margin-bottom:10px; border:1px solid black; background-color:#ff8383;">
+                                        Error: Wrong Password
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-1"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="registerButton">Register Now</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <div class="col-3"></div>
+    </div>
+</div>
+
+<script>
+    var registering = false;
+    function register() {
+        if (!registering) {
+            registering = true;
+            $('#registerButton').html('<i class="fas fa-spinner fa-spin"></i>');
+            $('#registerButton').attr('class', 'btn btn-primary disabled');
+            $.ajax({
+                url: '/Api/User/Create',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'Email': $('#Email').val(), 'Password': $('#Password').val(), 'ConfirmPassword': $('#CPassword').val(), 'Name': $('#FName').val() }),
+                success: function (responds) {
+                    if (responds.result == "OK") {
+                        $('#errorFrame').attr('style', 'display:none;')
+                        $('#registerButton').html('Registered');
+                        $('#registerButton').attr('class', 'btn btn-success disabled');
+                        setTimeout(function () { window.location.replace("/Login"); }, 2000);
+                    } 
+                },
+                error: function (request, status, error) {
+                    console.log(request.responseText)
+                    var json = JSON.parse(request.responseText);
+                    if (json.result == 'INPUT_IS_NULL') {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#registerButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Please enter the required details.');
+                        registering = false;
+                    } else if (json.result == 'PASSWORD_LENGTH_LESS_6') {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#registerButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Password length is too short. (min of 6 characters)');
+                        registering = false;
+                    } else if (json.result == 'USER_ALREADY_EXIST') {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#registerButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Email has already been used.');
+                        registering = false;
+                    } else if (json.result == 'PASSWORD_MISMATCH') {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#registerButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Password mismatch.');
+                        registering = false;
+                    } else if (json.result == 'INTERNAL_ERROR') {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        $('#errorFrame').removeAttr('style');
+                        $('#registerButton').attr('class', 'btn btn-primary shadow-none');
+                        $('#errorMsg').html('Error: Internal error.');
+                        registering = false;
+                    } else {
+                        $('#registerButton').html('<span style="font-size: 19px; margin: 0 10px;" id="loginButtonContent"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login</span>');
+                        registering = false;
+                    }
+                }
+            });
+        }
+        return false;
+    }
+</script>
+
