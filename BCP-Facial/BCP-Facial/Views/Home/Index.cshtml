@@ -2,7 +2,27 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<input type="file" id="imageUpload" onchange="uploadImg();" />
+
+<script>
+    function uploadImg() {
+        var formData = new FormData();
+        var data = document.getElementById('imageUpload');
+        formData.append('base64image', data.files[0]);
+        addingRoom = true;
+        $('#ConfirmButton').attr('class', 'btn btn-primary disabled');
+        $('#ConfirmButton').html('<i class="fas fa-spinner fa-spin"></i>');
+        $.ajax({
+            type: 'POST',
+            url: '/Api/Recognizer/UploadImage',
+            data: formData,
+            processData: false,
+            contentType: false,
+            async: false,
+            success: function (data) {
+            },
+            error: function (data) {
+            }
+        });
+    }
+</script>
