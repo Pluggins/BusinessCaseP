@@ -15,7 +15,7 @@ namespace BCP_Facial.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.1")
+                .HasAnnotation("ProductVersion", "3.1.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -87,6 +87,9 @@ namespace BCP_Facial.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PersonId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -119,9 +122,6 @@ namespace BCP_Facial.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PersonGroupId")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -187,8 +187,14 @@ namespace BCP_Facial.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("PrimaryValue")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("RecognizerId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SecondaryValue")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -198,6 +204,72 @@ namespace BCP_Facial.Migrations
                     b.HasIndex("RecognizerId");
 
                     b.ToTable("RecognizerTasks");
+                });
+
+            modelBuilder.Entity("BCP_Facial.Models.SiteConfig", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SiteConfigs");
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "SITEURL",
+                            Value = "https://bcp.amazecraft.net"
+                        },
+                        new
+                        {
+                            Key = "PERSONGROUP",
+                            Value = "bebc3187-603c-4f85-8e33-7f60b148458d"
+                        },
+                        new
+                        {
+                            Key = "NUM_PHOTO_PER_STUDENT",
+                            Value = "3"
+                        });
+                });
+
+            modelBuilder.Entity("BCP_Facial.Models.UserImage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<float>("Confidence")
+                        .HasColumnType("real");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FaceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserImages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -230,14 +302,14 @@ namespace BCP_Facial.Migrations
                         new
                         {
                             Id = "EF7A8FDE-0005-4085-B26F-37D7278BE768",
-                            ConcurrencyStamp = "0acd269f-e764-40d5-8cf3-17f293482a1e",
+                            ConcurrencyStamp = "6c6c6654-137b-4f78-b26b-abe45f0126ec",
                             Name = "LECTURER",
                             NormalizedName = "LECTURER"
                         },
                         new
                         {
                             Id = "4FBD4989-DF6E-479A-AE7D-641700E09A84",
-                            ConcurrencyStamp = "5a262991-0ec0-4a7f-9074-06306d2a591b",
+                            ConcurrencyStamp = "70afc8b1-1efc-41e3-9689-82262b6b4ed4",
                             Name = "ADMIN",
                             NormalizedName = "ADMIN"
                         });
@@ -466,6 +538,13 @@ namespace BCP_Facial.Migrations
                     b.HasOne("BCP_Facial.Models.Recognizer", "Recognizer")
                         .WithMany()
                         .HasForeignKey("RecognizerId");
+                });
+
+            modelBuilder.Entity("BCP_Facial.Models.UserImage", b =>
+                {
+                    b.HasOne("BCP_Facial.Models.BCPUser", "User")
+                        .WithMany("List_UserImage")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

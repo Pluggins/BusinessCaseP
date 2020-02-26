@@ -10,6 +10,9 @@ namespace BCP_Facial.Models.ViewModels
         public string Name { get; set; }
         public string UserData { get; set; }
         public string RecognitionModel { get; set; }
+        public string Url { get; set; }
+        public string FaceId { get; set; }
+        public string FaceListId { get; set; }
 
         public PersonGroupInput()
         {

@@ -7,29 +7,25 @@ using System.Threading.Tasks;
 
 namespace BCP_Facial.Models
 {
-    [Table("RecognizerTasks")]
-    public class RecognizerTask : _CommonAttribute
+    [Table("UserImages")]
+    public class UserImage : _CommonAttribute
     {
         [Key]
         public string Id { get; set; }
-        /*
-         * Command
-         * - REGISTER_NEW_FACE
-         */
-        public string Command { get; set; }
-        public string PrimaryValue { get; set; }
-        public string SecondaryValue { get; set; }
+        public string Url { get; set; }
         /*
          * Status
          * 0 - Cancelled
-         * 1 - Unread
-         * 2 - Read
-         * 3 - Done
+         * 1 - Pending for processing
+         * 2 - Using
          */
         public int Status { get; set; }
-        public virtual Recognizer Recognizer { get; set; }
+        public string FaceId { get; set; }
+        public string CreatedBy { get; set; }
+        public float Confidence { get; set; }
+        public virtual BCPUser User { get; set; }
 
-        public RecognizerTask()
+        public UserImage()
         {
             Id = Guid.NewGuid().ToString();
             Status = 1;

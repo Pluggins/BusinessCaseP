@@ -21,6 +21,8 @@ namespace BCP_Facial.Data
         public DbSet<RecognizerTask> RecognizerTasks { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<AttendanceItem> AttendanceItems { get; set; }
+        public DbSet<SiteConfig> SiteConfigs { get; set; }
+        public DbSet<UserImage> UserImages { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -37,6 +39,11 @@ namespace BCP_Facial.Data
                 .HasData(
                 new IdentityRole { Id = LecturerGuid, Name = "LECTURER", NormalizedName = "LECTURER" },
                 new IdentityRole { Id = AdminGuid, Name = "ADMIN", NormalizedName = "ADMIN" });
+            builder.Entity<SiteConfig>()
+                .HasData(
+                new SiteConfig { Key = "SITEURL", Value = "https://bcp.amazecraft.net" },
+                new SiteConfig { Key = "PERSONGROUP", Value = "bebc3187-603c-4f85-8e33-7f60b148458d" },
+                new SiteConfig { Key = "NUM_PHOTO_PER_STUDENT", Value = "3" });
         }
     }
 }

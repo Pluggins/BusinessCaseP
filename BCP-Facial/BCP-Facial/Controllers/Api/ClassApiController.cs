@@ -29,61 +29,63 @@ namespace BCP_Facial.Controllers.Api
         {
             ClassInfoOutput output = new ClassInfoOutput();
             AspUserService aspUser = new AspUserService(_db, this);
-
-            if (aspUser.IsAdmin)
+            
+            if (input == null)
             {
-                BCPUser lecturer = _db._BCPUsers.Where(e => e.Id.Equals(input.LecturerId) && e.Deleted == false && e.Status >= 3).FirstOrDefault();
-
-                if (lecturer == null)
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                if (aspUser.IsAdmin)
                 {
-                    Response.StatusCode = 400;
-                    output.Result = "USER_NOT_FOUND";
-                } else
-                {
-                    string pgId = Guid.NewGuid().ToString();
+                    string pgId = Guid.NewGuid().ToString().ToLower();
                     string personGroupId = Guid.NewGuid().ToString();
-                    Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/" + "face/v1.0/persongroups/"+ pgId);
+                    Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/" + "face/v1.0/persongroups/" + pgId);
                     HttpClientHandler handler = new HttpClientHandler();
                     StringContent queryString = null;
                     HttpClient client = new HttpClient(handler);
                     //string respond = null;
+                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0"); 
+                    PersonGroupInput pgInput = new PersonGroupInput()
+                    {
+                        Name = "Class-" + input.ClassName,
+                        UserData = "For class of " + input.ClassName,
+                        RecognitionModel = "recognition_02"
+                    };
 
-                    HttpResponseMessage response = await client.PostAsync(uri, queryString);
+                    queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
+                    queryString.Headers.Remove("Content-Type");
+                    queryString.Headers.Add("Content-Type", "application/json");
+                    HttpResponseMessage response = await client.PutAsync(uri, queryString);
                     //respond = await response.Content.ReadAsStringAsync();
 
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        PersonGroupInput pgInput = new PersonGroupInput()
-                        {
-                            Name = "Class-" + input.ClassName,
-                            UserData = "For class of " + input.ClassName
-                        };
-
-                        queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
-
                         Class newClass = new Class()
                         {
                             Name = input.ClassName,
-                            Lecturer = lecturer,
-                            CreatedBy = aspUser.User.Id,
-                            PersonGroupId = pgId
+                            CreatedBy = aspUser.User.Id
                         };
 
                         _db.Classes.Add(newClass);
+                        _db.SaveChanges();
                         Response.StatusCode = 200;
                         output.Result = "OK";
-                    } else
+                    }
+                    else
                     {
                         Response.StatusCode = 500;
                         output.Result = "INTERNAL_ERROR";
                     }
+
                 }
-                
-            } else
-            {
-                Response.StatusCode = 400;
-                output.Result = "NO_PRIVILEGE";
+                else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
             }
+            
             return output;
         }
     }

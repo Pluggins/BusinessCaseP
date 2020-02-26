@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BCP_Facial.Migrations
 {
-    public partial class init : Migration
+    public partial class inits : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -58,6 +58,18 @@ namespace BCP_Facial.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Recognizers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SiteConfigs",
+                columns: table => new
+                {
+                    Key = table.Column<string>(nullable: false),
+                    Value = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SiteConfigs", x => x.Key);
                 });
 
             migrationBuilder.CreateTable(
@@ -176,6 +188,7 @@ namespace BCP_Facial.Migrations
                     Email = table.Column<string>(nullable: true),
                     Name = table.Column<string>(nullable: true),
                     Status = table.Column<int>(nullable: false),
+                    PersonId = table.Column<string>(nullable: true),
                     AspUserId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
@@ -197,6 +210,8 @@ namespace BCP_Facial.Migrations
                     Deleted = table.Column<bool>(nullable: false),
                     DateCreated = table.Column<DateTime>(nullable: false),
                     Command = table.Column<string>(nullable: true),
+                    PrimaryValue = table.Column<string>(nullable: true),
+                    SecondaryValue = table.Column<string>(nullable: true),
                     Status = table.Column<int>(nullable: false),
                     RecognizerId = table.Column<string>(nullable: true)
                 },
@@ -219,7 +234,6 @@ namespace BCP_Facial.Migrations
                     Deleted = table.Column<bool>(nullable: false),
                     DateCreated = table.Column<DateTime>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    PersonGroupId = table.Column<string>(nullable: true),
                     CreatedBy = table.Column<string>(nullable: true),
                     LecturerId = table.Column<string>(nullable: true)
                 },
@@ -229,6 +243,31 @@ namespace BCP_Facial.Migrations
                     table.ForeignKey(
                         name: "FK_Classes_BCPUsers_LecturerId",
                         column: x => x.LecturerId,
+                        principalTable: "BCPUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserImages",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Deleted = table.Column<bool>(nullable: false),
+                    DateCreated = table.Column<DateTime>(nullable: false),
+                    Url = table.Column<string>(nullable: true),
+                    Status = table.Column<int>(nullable: false),
+                    FaceId = table.Column<string>(nullable: true),
+                    CreatedBy = table.Column<string>(nullable: true),
+                    Confidence = table.Column<float>(nullable: false),
+                    UserId = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserImages_BCPUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "BCPUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -310,12 +349,21 @@ namespace BCP_Facial.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "EF7A8FDE-0005-4085-B26F-37D7278BE768", "0acd269f-e764-40d5-8cf3-17f293482a1e", "LECTURER", "LECTURER" });
+                values: new object[,]
+                {
+                    { "EF7A8FDE-0005-4085-B26F-37D7278BE768", "6c6c6654-137b-4f78-b26b-abe45f0126ec", "LECTURER", "LECTURER" },
+                    { "4FBD4989-DF6E-479A-AE7D-641700E09A84", "70afc8b1-1efc-41e3-9689-82262b6b4ed4", "ADMIN", "ADMIN" }
+                });
 
             migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "4FBD4989-DF6E-479A-AE7D-641700E09A84", "5a262991-0ec0-4a7f-9074-06306d2a591b", "ADMIN", "ADMIN" });
+                table: "SiteConfigs",
+                columns: new[] { "Key", "Value" },
+                values: new object[,]
+                {
+                    { "SITEURL", "https://bcp.amazecraft.net" },
+                    { "PERSONGROUP", "bebc3187-603c-4f85-8e33-7f60b148458d" },
+                    { "NUM_PHOTO_PER_STUDENT", "3" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -402,6 +450,11 @@ namespace BCP_Facial.Migrations
                 name: "IX_RecognizerTasks_RecognizerId",
                 table: "RecognizerTasks",
                 column: "RecognizerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserImages_UserId",
+                table: "UserImages",
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -426,6 +479,12 @@ namespace BCP_Facial.Migrations
 
             migrationBuilder.DropTable(
                 name: "RecognizerTasks");
+
+            migrationBuilder.DropTable(
+                name: "SiteConfigs");
+
+            migrationBuilder.DropTable(
+                name: "UserImages");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

@@ -23,9 +23,11 @@ namespace BCP_Facial.Models
          * 4 - Lecturer & Admin
          */
         public int Status { get; set; }
+        public string PersonId { get; set; }
         [Required]
         public virtual IdentityUser AspUser { get; set; }
         public virtual ICollection<ClassAllocation> List_ClassAllocation { get; set; }
+        public virtual ICollection<UserImage> List_UserImage { get; set; }
 
         public BCPUser()
         {

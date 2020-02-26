@@ -36,15 +36,18 @@ namespace BCP_Facial.Controllers.Api
             {
                 if (item != null && item.Length > 0)
                 {
+                    string id = Guid.NewGuid().ToString();
                     string[] ext = item.FileName.Split('.');
-                    string fileName = "wwwroot\\recognizer\\" + Guid.NewGuid().ToString() + "." + ext[ext.Length-1];
+                    string part1 = "wwwroot";
+                    string part2 = "recognizer\\" + id + "." + ext[ext.Length - 1];
+                    string fileName = Path.Combine(part1, part2);
                     string url = _hostingEnvironment.ContentRootPath;
                     string path = Path.Combine(url, fileName);
 
                     using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
                         item.CopyToAsync(fs);
-                        output.Url = fileName;
+                        output.Url = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value + "/recognizer/" + id + "." + ext[ext.Length - 1];
                     }
                 }
             }

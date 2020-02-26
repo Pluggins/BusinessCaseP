@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace BCP_Facial.Controllers.Api
 {
-    public class PersonGroupApiController : Controller
+    public class LecturerApiController : Controller
     {
-
     }
 }
