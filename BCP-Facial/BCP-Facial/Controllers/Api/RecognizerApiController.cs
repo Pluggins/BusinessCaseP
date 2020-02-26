@@ -27,7 +27,7 @@ namespace BCP_Facial.Controllers.Api
 
         [HttpPost]
         [Route("Api/Recognizer/UploadImage")]
-        public ImageUploadOutput UploadImage()
+        public async Task<ImageUploadOutput> UploadImage()
         {
             ImageUploadOutput output = new ImageUploadOutput();
 
@@ -46,7 +46,7 @@ namespace BCP_Facial.Controllers.Api
 
                     using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
-                        item.CopyToAsync(fs);
+                        await item.CopyToAsync(fs);
                         output.Url = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value + "/recognizer/" + id + "." + ext[ext.Length - 1];
                     }
                 }

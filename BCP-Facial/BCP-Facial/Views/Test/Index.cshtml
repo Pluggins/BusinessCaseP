@@ -21,6 +21,22 @@
             contentType: false,
             async: false,
             success: function (data) {
+                linkImg(data.url);
+            },
+            error: function (data) {
+            }
+        });
+    }
+
+    function linkImg(url) {
+        $.ajax({
+            url: '/Api/Student/AddPhoto',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'StudentId': '44ed1200-074a-43a1-a1cf-e8974c25c426', 'ImageUrl': url }),
+            success: function (data) {
             },
             error: function (data) {
             }

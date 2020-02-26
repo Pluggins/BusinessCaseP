@@ -29,6 +29,7 @@ namespace BCP_Facial.Models
         {
             Id = Guid.NewGuid().ToString();
             Status = 1;
+            Confidence = -1;
         }
     }
 }
