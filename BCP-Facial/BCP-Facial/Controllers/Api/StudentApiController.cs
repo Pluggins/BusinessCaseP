@@ -219,13 +219,14 @@ namespace BCP_Facial.Controllers.Api
                                     {
                                         FaceId = faceIdToCompare,
                                         FaceListId = faceListId,
-                                        maxNumOfCandidatesReturned = int.Parse(_db.SiteConfigs.Where(e => e.Key.Equals("NUM_PHOTO_PER_STUDENT")).FirstOrDefault().Value)
+                                        maxNumOfCandidatesReturned = 10
                                     };
 
                                     queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
                                     queryString.Headers.Remove("Content-Type");
                                     queryString.Headers.Add("Content-Type", "application/json");
                                     response = await client.PostAsync(uri, queryString);
+                                    respond = await response.Content.ReadAsStringAsync();
 
                                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                                     {
@@ -258,63 +259,33 @@ namespace BCP_Facial.Controllers.Api
                                     queryString.Headers.Add("Content-Type", "application/json");
                                     response = await client.DeleteAsync(uri);
 
-                                    if (user.PersonId != null)
+                                    if (imageToBeUsed.Count < min)
                                     {
-                                        uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/"+personGroupId+"/persons/" + user.PersonId);
-                                        handler = new HttpClientHandler();
-                                        queryString = null;
-                                        client = new HttpClient(handler);
-                                        //string respond = null;
-                                        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                                        Response.StatusCode = 500;
+                                        output.Result = "NUM_PHOTO_NOT_SUFFICIENT";
+                                    } else
+                                    {
+                                        if (user.PersonId != null)
+                                        {
+                                            uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/persons/" + user.PersonId);
+                                            handler = new HttpClientHandler();
+                                            queryString = null;
+                                            client = new HttpClient(handler);
+                                            //string respond = null;
+                                            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
 
-                                        queryString = new StringContent("", Encoding.UTF8, "application/json");
-                                        queryString.Headers.Remove("Content-Type");
-                                        queryString.Headers.Add("Content-Type", "application/json");
-                                        response = await client.DeleteAsync(uri);
-                                    }
+                                            queryString = new StringContent("", Encoding.UTF8, "application/json");
+                                            queryString.Headers.Remove("Content-Type");
+                                            queryString.Headers.Add("Content-Type", "application/json");
+                                            response = await client.DeleteAsync(uri);
+                                        }
 
-                                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                                    {
-                                        failure = true;
-                                    }
+                                        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                                        {
+                                            failure = true;
+                                        }
 
-                                    uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/persons");
-                                    handler = new HttpClientHandler();
-                                    queryString = null;
-                                    client = new HttpClient(handler);
-                                    //string respond = null;
-                                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
-                                    pgInput = new PersonGroupInput()
-                                    {
-                                        Name = user.Id
-                                    };
-                                    queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
-                                    queryString.Headers.Remove("Content-Type");
-                                    queryString.Headers.Add("Content-Type", "application/json");
-                                    response = await client.PostAsync(uri, queryString);
-
-                                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                                    {
-                                        respond = await response.Content.ReadAsStringAsync();
-                                        jsonObj = JsonConvert.DeserializeObject(respond);
-                                        user.PersonId = jsonObj.personId;
-                                        _db.SaveChanges();
-                                    }
-                                    else
-                                    {
-                                        failure = true;
-                                    }
-
-                                    foreach (UserImage item in imageStore)
-                                    {
-                                        item.Status = 0;
-                                        _db.SaveChanges();
-                                    }
-
-                                    foreach (string s in imageToBeUsed)
-                                    {
-                                        UserImage item = imageStore.Where(e => e.FaceId.Equals(s)).FirstOrDefault();
-                                        uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/persons/" + user.PersonId + "/persistedFaces");
+                                        uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/persons");
                                         handler = new HttpClientHandler();
                                         queryString = null;
                                         client = new HttpClient(handler);
@@ -322,7 +293,7 @@ namespace BCP_Facial.Controllers.Api
                                         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
                                         pgInput = new PersonGroupInput()
                                         {
-                                            Url = item.Url
+                                            Name = user.Id
                                         };
                                         queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
                                         queryString.Headers.Remove("Content-Type");
@@ -333,37 +304,77 @@ namespace BCP_Facial.Controllers.Api
                                         {
                                             respond = await response.Content.ReadAsStringAsync();
                                             jsonObj = JsonConvert.DeserializeObject(respond);
-                                            item.FaceId = jsonObj.persistedFaceId;
-                                            item.Status = 2;
+                                            user.PersonId = jsonObj.personId;
                                             _db.SaveChanges();
                                         }
                                         else
                                         {
                                             failure = true;
                                         }
-                                    }
 
-                                    uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/"+personGroupId+"/train");
-                                    handler = new HttpClientHandler();
-                                    queryString = null;
-                                    client = new HttpClient(handler);
-                                    //string respond = null;
-                                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
-                                    queryString = new StringContent("", Encoding.UTF8, "application/json");
-                                    queryString.Headers.Remove("Content-Type");
-                                    queryString.Headers.Add("Content-Type", "application/json");
-                                    response = await client.PostAsync(uri, queryString);
+                                        foreach (UserImage item in imageStore)
+                                        {
+                                            item.Status = 0;
+                                            _db.SaveChanges();
+                                        }
 
-                                    if (failure)
-                                    {
-                                        Response.StatusCode = 500;
-                                        output.Result = "INCOMPLETE_PROCESS";
-                                    }
-                                    else
-                                    {
-                                        output.Result = "OK";
-                                    }
+                                        foreach (string s in imageToBeUsed)
+                                        {
+                                            if (min > 0)
+                                            {
+                                                UserImage item = imageStore.Where(e => e.FaceId.Equals(s)).FirstOrDefault();
+                                                uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/persons/" + user.PersonId + "/persistedFaces");
+                                                handler = new HttpClientHandler();
+                                                queryString = null;
+                                                client = new HttpClient(handler);
+                                                //string respond = null;
+                                                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                                                pgInput = new PersonGroupInput()
+                                                {
+                                                    Url = item.Url
+                                                };
+                                                queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
+                                                queryString.Headers.Remove("Content-Type");
+                                                queryString.Headers.Add("Content-Type", "application/json");
+                                                response = await client.PostAsync(uri, queryString);
 
+                                                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                                                {
+                                                    respond = await response.Content.ReadAsStringAsync();
+                                                    jsonObj = JsonConvert.DeserializeObject(respond);
+                                                    item.FaceId = jsonObj.persistedFaceId;
+                                                    item.Status = 2;
+                                                    _db.SaveChanges();
+                                                }
+                                                else
+                                                {
+                                                    failure = true;
+                                                }
+                                            }
+                                            min--;
+                                        }
+
+                                        uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/train");
+                                        handler = new HttpClientHandler();
+                                        queryString = null;
+                                        client = new HttpClient(handler);
+                                        //string respond = null;
+                                        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                                        queryString = new StringContent("", Encoding.UTF8, "application/json");
+                                        queryString.Headers.Remove("Content-Type");
+                                        queryString.Headers.Add("Content-Type", "application/json");
+                                        response = await client.PostAsync(uri, queryString);
+
+                                        if (failure)
+                                        {
+                                            Response.StatusCode = 500;
+                                            output.Result = "INCOMPLETE_PROCESS";
+                                        }
+                                        else
+                                        {
+                                            output.Result = "OK";
+                                        }
+                                    }
                                 }
                                 else
                                 {
