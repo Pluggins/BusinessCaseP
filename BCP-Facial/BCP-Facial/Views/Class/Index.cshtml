@@ -2,3 +2,155 @@
 @{
     ViewData["Title"] = "Classes";
 }
+
+@model BCP_Facial.Models.ViewModels.ClassViewModel
+
+<div style="height: 120px;background-color: #624949;position: relative">
+    <div style="position:absolute; text-align:center; width:100%; font-size:40px; color:white; top:30%">
+        Classes
+    </div>
+</div>
+
+<div style="width:80%; margin: 0 auto; padding-top:50px;">
+    <div style="height:50px;">
+        <div class="btn btn-warning float-right" onclick="addClassModal();">Add New Class</div>
+    </div>
+    <table class="table table-striped table-bordered" style="background-color:white;" id="classList">
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Capacity</th>
+                <th>Date Created</th>
+                <th>Option</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Class item in Model.Classes)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.List_ClassAllocation.Count/@item.Capacity</td>
+                    <td>@item.DateCreated</td>
+                    <td><div class="btn btn-danger" onclick="removeLecturer('@item.Id', this);" id="@item.Id">Remove</div></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="addClassModal" tabindex="-1" role="dialog" aria-labelledby="addClassModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div style="background-color:#ffb26e1f;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add New Class</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <div class="form-box">
+                                <div>
+                                    <label for="Name">Class Name:</label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="ClassName" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="errorFrame" style="display:none;">
+                                <div id="errorMsg">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="addClassButton" onclick="addClass();">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var addingClass = false;
+
+    $(document).ready(function () {
+        $('#classList').DataTable({
+            'order': [[3, "asc"]],
+            "columnDefs": [
+                { "width": "250px", "targets": 0 },
+                { "width": "100px", "targets": 1 },
+                { "width": "100px", "targets": 2 },
+                { "width": "50px", "targets": 3 }
+            ],
+        });
+    });
+
+    function reinitialize() {
+        $('#ClassName').val('');
+        $('#errorFrame').attr('style', 'display:none;');
+    }
+
+    function addClassModal() {
+        reinitialize();
+        $('#addClassModal').modal('show');
+        setTimeout(function () { document.getElementById('ClassName').focus(); }, 500);
+    }
+
+    function addClass() {
+        if ($('#ClassName').val().length > 0) {
+            if (!addingClass) {
+                addingClass = true;
+                $('#addClassButton').attr('class', 'btn btn-primary disabled');
+                $('#addClassButton').html('<i class="fas fa-spinner fa-spin"></i>');
+                $.ajax({
+                    url: '/Api/Class/Create',
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    async: false,
+                    data: JSON.stringify({ 'className': $('#ClassName').val() }),
+                    success: function (responds) {
+                        if (responds.result == "OK") {
+                            $('#addClassButton').attr('class', 'btn btn-success disabled');
+                            $('#addClassButton').html('Added');
+                            setTimeout(function () { window.location.replace('/Class'); }, 2000);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        var json = JSON.parse(request.responseText);
+                        if (json.result == 'INPUT_IS_NULL') {
+                            $('#addLecturerButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#addLecturerButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Please input a new class name.</div>');
+                            addingClass = false;
+                        } else if (json.result == 'NO_PRIVILEGE') {
+                            $('#addLecturerButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#addLecturerButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: Wrong credential</div>');
+                            addingClass = false;
+                        } else {
+                            $('#addLecturerButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#addLecturerButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: Please try again later.</div>');
+                            addingClass = false;
+                        }
+                    }
+                });
+            }
+        } else {
+            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+            $('#errorMsg').html('<div style="text-align: center;">Please input a new class name.</div>');
+        }
+    }
+</script>

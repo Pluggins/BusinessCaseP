@@ -2,6 +2,7 @@
 using BCP_Facial.Models;
 using BCP_Facial.Models.ViewModels;
 using BCP_Facial.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace BCP_Facial.Controllers.Api
 {
+    [Authorize]
     public class ClassApiController : Controller
     {
         private readonly ApplicationDbContext _db;
@@ -25,41 +27,24 @@ namespace BCP_Facial.Controllers.Api
 
         [HttpPost]
         [Route("Api/Class/Create")]
-        public async Task<ClassInfoOutput> Create([FromBody] ClassInfoInput input)
+        public ClassInfoOutput Create([FromBody] ClassInfoInput input)
         {
             ClassInfoOutput output = new ClassInfoOutput();
             AspUserService aspUser = new AspUserService(_db, this);
             
-            if (input == null)
+            if (aspUser.IsAdmin)
             {
-                Response.StatusCode = 400;
-                output.Result = "INPUT_IS_NULL";
-            } else
-            {
-                if (aspUser.IsAdmin)
+                if (input == null)
                 {
-                    string pgId = Guid.NewGuid().ToString().ToLower();
-                    string personGroupId = Guid.NewGuid().ToString();
-                    Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/" + "face/v1.0/persongroups/" + pgId);
-                    HttpClientHandler handler = new HttpClientHandler();
-                    StringContent queryString = null;
-                    HttpClient client = new HttpClient(handler);
-                    //string respond = null;
-                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0"); 
-                    PersonGroupInput pgInput = new PersonGroupInput()
+                    Response.StatusCode = 400;
+                    output.Result = "INPUT_IS_NULL";
+                } else
+                {
+                    if (string.IsNullOrEmpty(input.ClassName))
                     {
-                        Name = "Class-" + input.ClassName,
-                        UserData = "For class of " + input.ClassName,
-                        RecognitionModel = "recognition_02"
-                    };
-
-                    queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
-                    queryString.Headers.Remove("Content-Type");
-                    queryString.Headers.Add("Content-Type", "application/json");
-                    HttpResponseMessage response = await client.PutAsync(uri, queryString);
-                    //respond = await response.Content.ReadAsStringAsync();
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                        Response.StatusCode = 400;
+                        output.Result = "INPUT_IS_NULL";
+                    } else
                     {
                         Class newClass = new Class()
                         {
@@ -67,23 +52,16 @@ namespace BCP_Facial.Controllers.Api
                             CreatedBy = aspUser.User.Id
                         };
 
+                        output.Result = "OK";
+
                         _db.Classes.Add(newClass);
                         _db.SaveChanges();
-                        Response.StatusCode = 200;
-                        output.Result = "OK";
                     }
-                    else
-                    {
-                        Response.StatusCode = 500;
-                        output.Result = "INTERNAL_ERROR";
-                    }
-
                 }
-                else
-                {
-                    Response.StatusCode = 400;
-                    output.Result = "NO_PRIVILEGE";
-                }
+            } else
+            {
+                Response.StatusCode = 400;
+                output.Result = "NO_PRIVILEGE";
             }
             
             return output;

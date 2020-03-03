@@ -261,8 +261,8 @@ namespace BCP_Facial.Controllers.Api
 
                                     if (imageToBeUsed.Count < min)
                                     {
-                                        Response.StatusCode = 500;
-                                        output.Result = "NUM_PHOTO_NOT_SUFFICIENT";
+                                        Response.StatusCode = 400;
+                                        output.Result = "IMAGE_USERSTORE_LESS_ACCURATE";
                                     } else
                                     {
                                         if (user.PersonId != null)

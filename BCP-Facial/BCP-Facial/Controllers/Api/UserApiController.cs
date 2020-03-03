@@ -2,6 +2,7 @@
 using BCP_Facial.Models;
 using BCP_Facial.Models.ViewModels;
 using BCP_Facial.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace BCP_Facial.Controllers.Api
 {
+    [Authorize]
     public class UserApiController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -27,6 +29,7 @@ namespace BCP_Facial.Controllers.Api
             _db = db;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Api/User/Create")]
         public async Task<UserInfoOutput> Create([FromBody] UserInfoInput input)
@@ -102,6 +105,7 @@ namespace BCP_Facial.Controllers.Api
             return output;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Api/User/WebLogin")]
         public async Task<UserInfoOutput> WebLogin([FromBody] UserInfoInput input)
@@ -144,6 +148,7 @@ namespace BCP_Facial.Controllers.Api
             return output;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Api/User/CheckRole")]
         public async Task<UserInfoOutput> CheckRole()
@@ -205,6 +210,7 @@ namespace BCP_Facial.Controllers.Api
             return output;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Api/User/Logout")]
         public async Task<UserInfoOutput> Logout()
@@ -215,6 +221,77 @@ namespace BCP_Facial.Controllers.Api
                 Result = "OK"
             };
 
+            return output;
+        }
+
+        [HttpPost]
+        [Route("Api/User/CheckUserByEmail")]
+        public UserInfoOutput CheckUserByEmail([FromBody] UserInfoInput input)
+        {
+            UserInfoOutput output = new UserInfoOutput();
+            AspUserService aspUser = new AspUserService(_db, this);
+            if (aspUser.IsAdmin)
+            {
+                if (input == null)
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "INPUT_IS_NULL";
+                } else
+                {
+                    BCPUser user = _db._BCPUsers.Where(e => e.Email.ToUpper().Equals(input.Email.ToUpper())).FirstOrDefault();
+                    if (user == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "USER_NOT_EXIST";
+                    } else
+                    {
+                        output.Email = user.Email;
+                        output.Name = user.Name;
+                        output.Result = "OK";
+                    }
+                }
+            } else
+            {
+                Response.StatusCode = 400;
+                output.Result = "NO_PRIVILEGE";
+            }
+            return output;
+        }
+
+        [HttpPost]
+        [Route("Api/User/CheckUserById")]
+        public UserInfoOutput CheckUserById([FromBody] UserInfoInput input)
+        {
+            UserInfoOutput output = new UserInfoOutput();
+            AspUserService aspUser = new AspUserService(_db, this);
+            if (aspUser.IsAdmin)
+            {
+                if (input == null)
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "INPUT_IS_NULL";
+                }
+                else
+                {
+                    BCPUser user = _db._BCPUsers.Where(e => e.Id.Equals(input.UserId)).FirstOrDefault();
+                    if (user == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "USER_NOT_EXIST";
+                    }
+                    else
+                    {
+                        output.Email = user.Email;
+                        output.Name = user.Name;
+                        output.Result = "OK";
+                    }
+                }
+            }
+            else
+            {
+                Response.StatusCode = 400;
+                output.Result = "NO_PRIVILEGE";
+            }
             return output;
         }
     }

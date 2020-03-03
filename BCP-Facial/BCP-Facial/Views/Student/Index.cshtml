@@ -2,3 +2,38 @@
 @{
     ViewData["Title"] = "Students";
 }
+
+<div style="height: 120px;background-color: #624949;position: relative">
+    <div style="position:absolute; text-align:center; width:100%; font-size:40px; color:white; top:30%">
+        Students
+    </div>
+</div>
+<div style="display:table; width:100%; height:50vh;">
+    <div style="display: table-cell; vertical-align:middle;">
+        <div class="row">
+            <div class="col-2"></div>
+            <div class="col-8">
+                <form method="get" action="/Student/Search">
+                    <div class="input-group">
+                        <input class="form-control" name="studentvalue" type="text" style="font-size:30px;" placeholder="Search a student" required/>
+                        <div class="input-group-append"><button type="submit" class="btn btn-warning" onclick="checkUser()" id="searchBtn" style="font-size:30px;"><i class="fas fa-search"></i></button></div>
+                    </div>
+                    <div>
+                        <div class="row" style="padding-top: 10px;">
+                            <div class="col-2"></div>
+                            <div class="col-3" style="font-size:17px;">
+                                <label><input type="radio" value="name" name="category" required> Search by Name</label>
+                            </div>
+                            <div class="col-1"></div>
+                            <div class="col-4" style="font-size:17px;">
+                                <label><input type="radio" value="email" name="category" required> Search by Email</label>
+                            </div>
+                            <div class="col-2"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-2"></div>
+        </div>
+    </div>
+</div>
