@@ -44,7 +44,13 @@ namespace BCP_Facial.Controllers.Api
                         output.Result = "USER_ALREADY_ASSIGNED_LECTURER";
                     } else
                     {
-                        user.Status = 2;
+                        if (user.Status == 3)
+                        {
+                            user.Status = 4;
+                        } else
+                        {
+                            user.Status = 2;
+                        }
                         _db.SaveChanges();
 
                         output.Result = "OK";
