@@ -31,11 +31,37 @@
                     <td>@item.Name</td>
                     <td>@item.List_ClassAllocation.Count/@item.Capacity</td>
                     <td>@item.DateCreated</td>
-                    <td><div class="btn btn-danger" onclick="removeLecturer('@item.Id', this);" id="@item.Id">Remove</div></td>
+                    <td><div class="btn btn-danger" onclick="removeClass('@item.Id', this);" id="@item.Id">Remove</div></td>
                 </tr>
             }
         </tbody>
     </table>
+</div>
+
+<div class="modal fade" id="removeClassModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                Are you sure you want to remove the following class?
+                <div style="margin:0 auto; width:50%; padding:10px;">
+                    <div style="text-align:center; border:1px solid black; padding:10px; background-color:#e8e8e8;">
+                        Class name: <span id="classNameConfirmation"></span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="deleteConfirmButton" onclick="postRemoveClass();">Remove Now</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="addClassModal" tabindex="-1" role="dialog" aria-labelledby="addClassModalTitle" aria-hidden="true">
@@ -79,6 +105,9 @@
 </div>
 
 <script>
+    var removingClassId;
+    var removingModal = false;
+    var removingClass = false;
     var addingClass = false;
 
     $(document).ready(function () {
@@ -151,6 +180,76 @@
         } else {
             $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
             $('#errorMsg').html('<div style="text-align: center;">Please input a new class name.</div>');
+        }
+    }
+
+    function removeClass(id, ele) {
+        if (!removingModal) {
+            removingModal = true;
+            $('#' + ele.id).attr('class', 'btn btn-primary disabled');
+            $('#' + ele.id).html('<i class="fas fa-spinner fa-spin"></i>');
+            removingClassId = id;
+            $.ajax({
+                url: '/Api/Class/CheckClassById',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'classId': removingClassId }),
+                success: function (responds) {
+                    if (responds.result == "OK") {
+                        $('#' + ele.id).attr('class', 'btn btn-danger');
+                        $('#' + ele.id).html('Remove');
+                        $('#classNameConfirmation').html(responds.className);
+                        $('#removeClassModal').modal('show');
+                        removingModal = false;
+                    }
+                },
+                error: function (request, status, error) {
+                    $('#' + ele.id).attr('class', 'btn btn-danger');
+                    $('#' + ele.id).html('Remove');
+                    removingModal = false;
+                }
+            });
+        }
+    }
+
+    function postRemoveClass() {
+        if (!removingClass) {
+            removingClass = true;
+            $('#deleteConfirmButton').attr('class', 'btn btn-primary disabled');
+            $('#deleteConfirmButton').html('<i class="fas fa-spinner fa-spin"></i>');
+            $.ajax({
+                url: '/Api/Class/Remove',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'classId': removingClassId }),
+                success: function (responds) {
+                    if (responds.result == "OK") {
+                        $('#deleteConfirmButton').attr('class', 'btn btn-success disabled');
+                        $('#deleteConfirmButton').html('Removed');
+                        setTimeout(function () { window.location.replace('/Class'); }, 2000);
+                    }
+                },
+                error: function (request, status, error) {
+                    var json = JSON.parse(request.responseText);
+                    if (json.result == 'INPUT_IS_NULL') {
+                        $('#deleteConfirmButton').html('Remove Now');
+                        $('#deleteConfirmButton').attr('class', 'btn btn-primary shadow-none');
+                        removingClass = false;
+                    } else if (json.result == 'NO_PRIVILEGE') {
+                        $('#deleteConfirmButton').html('Remove Now');
+                        $('#deleteConfirmButton').attr('class', 'btn btn-primary shadow-none');
+                        removingClass = false;
+                    } else {
+                        $('#deleteConfirmButton').html('Remove Now');
+                        $('#deleteConfirmButton').attr('class', 'btn btn-primary shadow-none');
+                        removingClass = false;
+                    }
+                }
+            });
         }
     }
 </script>
