@@ -50,7 +50,8 @@ namespace BCP_Facial.Controllers
                     model.StudentImages = user.List_UserImage.OrderByDescending(e => e.Confidence).ToList();
                 }
 
-                return View();
+                ViewBag.SiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
+                return View(model);
             } else
             {
                 return RedirectToAction("Index", "Home");

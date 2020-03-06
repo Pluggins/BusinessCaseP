@@ -47,7 +47,7 @@ namespace BCP_Facial.Controllers.Api
                     using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
                         await item.CopyToAsync(fs);
-                        output.Url = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value + "/recognizer/" + id + "." + ext[ext.Length - 1];
+                        output.Url = "recognizer/" + id + "." + ext[ext.Length - 1];
                     }
                 }
             }

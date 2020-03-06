@@ -90,6 +90,7 @@ namespace BCP_Facial.Controllers.Api
                 //string respond = null;
                 client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
                 HttpResponseMessage response = await client.GetAsync(uri);
+                string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
                 string respond = await response.Content.ReadAsStringAsync();
                 dynamic jsonObj = JsonConvert.DeserializeObject(respond);
                 string trainingStatus = "NONE";
@@ -121,7 +122,7 @@ namespace BCP_Facial.Controllers.Api
                             List<UserImage> imageStore = user.List_UserImage.Where(e => e.Status == 1).OrderBy(e => e.DateCreated).ToList();
                             List<string> imageToBeUsed = new List<string>();
                             int min = int.Parse(_db.SiteConfigs.Where(e => e.Key.Equals("NUM_PHOTO_PER_STUDENT")).FirstOrDefault().Value);
-                            string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value;
+                            string mainSiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value;
                             int imageCount = imageStore.Count;
                             string faceIdToCompare = null;
 
@@ -160,7 +161,7 @@ namespace BCP_Facial.Controllers.Api
                                             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
                                             pgInput = new PersonGroupInput()
                                             {
-                                                Url = item.Url
+                                                Url = mainSiteUrl + "/" + item.Url
                                             };
 
                                             queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
@@ -188,7 +189,7 @@ namespace BCP_Facial.Controllers.Api
                                             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
                                             pgInput = new PersonGroupInput()
                                             {
-                                                Url = item.Url
+                                                Url = mainSiteUrl + "/" + item.Url
                                             };
 
                                             queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
@@ -331,7 +332,7 @@ namespace BCP_Facial.Controllers.Api
                                                 client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
                                                 pgInput = new PersonGroupInput()
                                                 {
-                                                    Url = item.Url
+                                                    Url = mainSiteUrl + "/" + item.Url
                                                 };
                                                 queryString = new StringContent(JsonConvert.SerializeObject(pgInput), Encoding.UTF8, "application/json");
                                                 queryString.Headers.Remove("Content-Type");
