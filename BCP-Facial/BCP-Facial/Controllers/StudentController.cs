@@ -32,6 +32,31 @@ namespace BCP_Facial.Controllers
             }
         }
 
+        [Route("Student/{id}")]
+        public IActionResult GetUser(string id)
+        {
+            if (User.IsInRole("ADMIN"))
+            {
+                StudentViewModel model = new StudentViewModel();
+
+                BCPUser user = _db._BCPUsers.Where(e => e.Id.Equals(id)).FirstOrDefault();
+                if (user == null)
+                {
+                    return RedirectToAction("Index", "Student");
+                } else
+                {
+                    model.StudentName = user.Name;
+                    model.AccountRole = user.Status;
+                    model.StudentImages = user.List_UserImage.OrderByDescending(e => e.Confidence).ToList();
+                }
+
+                return View();
+            } else
+            {
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
         public IActionResult Search(string category, string studentvalue)
         {
             if (User.IsInRole("ADMIN"))
