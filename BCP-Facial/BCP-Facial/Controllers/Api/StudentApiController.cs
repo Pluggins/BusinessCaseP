@@ -401,5 +401,46 @@ namespace BCP_Facial.Controllers.Api
 
             return output;
         }
+
+        [HttpPost]
+        [Route("Api/Student/RemoveFace")]
+        public StudentInfoOutput RemoveFace([FromBody] StudentInfoInput input)
+        {
+            StudentInfoOutput output = new StudentInfoOutput();
+            AspUserService aspUser = new AspUserService(_db, this);
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                if (aspUser.IsAdmin)
+                {
+                    BCPUser user = _db._BCPUsers.Where(e => e.Id.Equals(input.StudentId)).FirstOrDefault();
+                    if (user == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "USER_NOT_EXIST";
+                    } else
+                    {
+                        List<UserImage> images = user.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).ToList();
+                        foreach (UserImage item in images)
+                        {
+                            item.Status = 0;
+                        }
+
+                        _db.SaveChanges();
+                        output.Result = "OK";
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
     }
 }

@@ -47,7 +47,35 @@ namespace BCP_Facial.Controllers
                 {
                     model.StudentName = user.Name;
                     model.AccountRole = user.Status;
+                    model.StudentImages = user.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
+                    model.StudentId = id;
+                }
+
+                ViewBag.SiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
+                return View(model);
+            } else
+            {
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [Route("Student/Detail/{id}")]
+        public IActionResult GetDetail(string id)
+        {
+            if (User.IsInRole("ADMIN"))
+            {
+                StudentViewModel model = new StudentViewModel();
+
+                BCPUser user = _db._BCPUsers.Where(e => e.Id.Equals(id)).FirstOrDefault();
+                if (user == null)
+                {
+                    return RedirectToAction("Index", "Student");
+                } else
+                {
+                    model.StudentName = user.Name;
+                    model.AccountRole = user.Status;
                     model.StudentImages = user.List_UserImage.OrderByDescending(e => e.Confidence).ToList();
+                    model.StudentId = id;
                 }
 
                 ViewBag.SiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;

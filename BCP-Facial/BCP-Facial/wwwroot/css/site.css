@@ -124,3 +124,13 @@
 td {
     vertical-align: middle !important;
 }
+
+.student-cat {
+    transition: background-color 0.5s ease;
+    background-color: #524848;
+    cursor: pointer;
+}
+
+.student-cat:hover {
+    background-color: #333;
+}

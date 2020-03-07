@@ -15,11 +15,15 @@ namespace BCP_Facial.Models
         [Key]
         public string Id { get; set; }
         public string Key { get; set; }
+        public DateTime LastActivityDateTime { get; set; }
+        public string LastActivityAction { get; set; }
 
         public Recognizer()
         {
             Id = Guid.NewGuid().ToString();
             Key = HashingService.GenerateSHA256(Convert.FromBase64String(Guid.NewGuid().ToString().Replace("-", "")), Convert.FromBase64String(ApplicationDbContext._hashSalt));
+            LastActivityDateTime = DateTime.UtcNow.AddHours(8);
+            LastActivityAction = "IDLE";
         }
     }
 }

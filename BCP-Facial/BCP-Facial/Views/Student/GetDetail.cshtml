@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewData["Title"] = "GetDetail";
+}
+
+@model BCP_Facial.Models.ViewModels.StudentViewModel
+
+<div style="height:300px;background-color:#624949;position:relative">
+    <div style="position:absolute; text-align:center; width:70%; height:200px; font-size:40px; color:white; top:0%; left:15%;">
+        <div style="border: 5px solid #9f7f6d; height:207px;  position:absolute; background-color:black; top:50px; z-index:1;">
+            @if (Model.StudentImages.Count > 0)
+            {
+                <img src="@ViewBag.SiteUrl/@Model.StudentImages.First().Url" width="150" height="198" />
+            }
+            else
+            {
+                <div>Hi</div>
+            }
+        </div>
+        <div style="bottom:10px; left:20%; position:absolute; width:70%; height:10px; background-color:#9f7f6d; z-index:0; word-wrap:break-word;">
+            <div style="position:absolute; top:-115px; left:20%; height:100px; min-width:300px; max-width:400px; display:table;">
+                <div style="vertical-align:bottom; display:table-cell; line-height:50px; text-align:left; font-size:50px;">@Model.StudentName</div>
+            </div>
+            <div style="position:absolute; right:50px; top:5px;">
+                @if (Model.AccountRole == 1)
+                {
+                    <span>Student</span>
+                }
+                else if (Model.AccountRole == 2)
+                {
+                    <span>Lecturer</span>
+                }
+                else if (Model.AccountRole == 3 || Model.AccountRole == 4)
+                {
+                    <span>Admin</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div style="padding:30px 50px;">
+    <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span class="bread-target"><a href="/Student/@Model.StudentId">@Model.StudentName</a></span></div>
+    <div>
+        <div style="text-align:center; font-size:25px;">
+            Student Detail
+        </div>
+        <div style="padding:30px 400px; font-size: 18px;">
+            <div class="row">
+                <div class="col-4">Name:</div>
+                <div class="col-8">@Model.StudentName</div>
+            </div>
+            <div class="row">
+                <div class="col-4">Email:</div>
+                <div class="col-8"></div>
+            </div>
+        </div>
+
+    </div>
+</div>

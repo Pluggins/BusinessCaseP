@@ -10,14 +10,17 @@
         <div style="border: 5px solid #9f7f6d; height:207px;  position:absolute; background-color:black; top:50px; z-index:1;">
             @if (Model.StudentImages.Count > 0)
             {
-                <img src="@ViewBag.SiteUrl/@Model.StudentImages.First().Url" height="198px" />
+                <img src="@ViewBag.SiteUrl/@Model.StudentImages.First().Url" width="150" height="198" />
             }
             else
             {
-                <div>Hi</div>
+                <div style="width:150px;height:198px; vertical-align:middle; display:table-cell;border:3px dashed white;background-color:#4b2929;">
+                    <div>NO</div>
+                    <div>IMAGE</div>
+                </div>
             }
         </div>
-        <div style="bottom:10px; left:20%; position:absolute; width:70%; height:10px; background-color:#9f7f6d; z-index:0; word-wrap:break-word;">
+        <div style="bottom: 10px;left: 20%;position: absolute;width: 70%;height: 10px;background-color: #9f7f6d;z-index: 0;word-wrap: break-word;">
             <div style="position:absolute; top:-115px; left:20%; height:100px; min-width:300px; max-width:400px; display:table;">
                 <div style="vertical-align:bottom; display:table-cell; line-height:50px; text-align:left; font-size:50px;">@Model.StudentName</div>
             </div>
@@ -36,3 +39,101 @@
         </div>
     </div>
 </div>
+<div style="padding:30px 50px;">
+    <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span class="bread-target"><a href="/Student/@Model.StudentId">@Model.StudentName</a></span></div>
+    <div style="width:70%; margin:0 auto; margin-top:30px;">
+        <div class="row" style="margin-bottom:30px;">
+            <div class="col-6">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                    <div style="position:absolute; color:white; bottom:20px; right:20px; font-size: 25px; line-height:28px; border-bottom:2px solid white; padding-bottom:10px;">
+                        <div style="text-align:right;">Add Faces</div>
+                        <div style="text-align:right;">to Recognition</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;" onclick="removeFaceModal();">
+                    <div style="position:absolute; color:white; bottom:20px; left:20px; font-size: 25px; line-height:28px; border-bottom:2px solid white; padding-bottom:10px;">
+                        <div style="text-align:left;">Remove Faces</div>
+                        <div style="text-align:left;">from Recognition</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-bottom:10px;">
+            <div class="col-6">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                    <div style="position:absolute; color:white; top:20px; right:20px; font-size: 25px; line-height:28px; border-top:2px solid white; padding-top:5px;">
+                        <div style="text-align:right;">Add Student</div>
+                        <div style="text-align:right;">to a Class</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                    <div style="position:absolute; color:white; top:20px; left:20px; font-size: 25px; line-height:28px; border-top:2px solid white; padding-top:5px;">
+                        <div style="text-align:left;">View Student's</div>
+                        <div style="text-align:left;">Details</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="removeFaceModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                Are you sure you want to remove the student's face collection?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="deleteConfirmButton" onclick="removeFace();">Remove Now</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var studentId = '@Model.StudentId';
+    var removing = false;
+
+    function removeFaceModal() {
+        $('#removeFaceModal').modal('show');
+    }
+
+    function removeFace() {
+        if (!removing) {
+            removing = true;
+            $('#deleteConfirmButton').attr('class', 'btn btn-primary disabled');
+            $('#deleteConfirmButton').html('<i class="fas fa-spinner fa-spin"></i>');
+            $.ajax({
+                url: '/Api/Student/RemoveFace',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'studentId': studentId }),
+                success: function (responds) {
+                    if (responds.result == "OK") {
+                        $('#deleteConfirmButton').attr('class', 'btn btn-success disabled');
+                        $('#deleteConfirmButton').html('Removed');
+                        setTimeout(function () { window.location.replace('/Student/' + studentId); }, 2000);
+                    }
+                },
+                error: function (request, status, error) {
+                    $('#deleteConfirmButton').html('Add');
+                    $('#deleteConfirmButton').attr('class', 'btn btn-primary shadow-none');
+                    removing = false;
+                }
+            });
+        }
+    }
+</script>
