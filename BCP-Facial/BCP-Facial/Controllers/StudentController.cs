@@ -1,6 +1,7 @@
 ﻿using BCP_Facial.Data;
 using BCP_Facial.Models;
 using BCP_Facial.Models.ViewModels;
+using BCP_Facial.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -74,7 +75,7 @@ namespace BCP_Facial.Controllers
                 {
                     model.StudentName = user.Name;
                     model.AccountRole = user.Status;
-                    model.StudentImages = user.List_UserImage.OrderByDescending(e => e.Confidence).ToList();
+                    model.StudentImages = user.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
                     model.StudentId = id;
                 }
 
@@ -122,7 +123,40 @@ namespace BCP_Facial.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        [Route("Student/AddFace/{id}")]
+        public IActionResult AddFace(string id)
+        {
+            AspUserService aspUser = new AspUserService(_db, this);
+
+            if (aspUser.IsAdmin)
+            {
+                BCPUser student = _db._BCPUsers.Where(e => e.Id.Equals(id)).FirstOrDefault();
                 
+                if (student == null)
+                {
+                    return RedirectToAction("Index", "Student");
+                } else
+                {
+                    List<Recognizer> recognizers = _db.Recognizers.Where(e => e.Deleted == false).OrderBy(e => e.Id).ToList();
+                    StudentViewModel studentModel = new StudentViewModel();
+                    AddFaceViewModel model = new AddFaceViewModel();
+
+                    studentModel.StudentName = student.Name;
+                    studentModel.AccountRole = student.Status;
+                    studentModel.StudentImages = student.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
+                    studentModel.StudentId = id;
+
+                    model.Student = studentModel;
+                    model.Recognizers = recognizers;
+
+                    return View(model);
+                }
+            } else
+            {
+                return RedirectToAction("Index", "Home");
+            }
         }
     }
 }

@@ -24,7 +24,7 @@
             <div style="position:absolute; top:-115px; left:20%; height:100px; min-width:300px; max-width:400px; display:table;">
                 <div style="vertical-align:bottom; display:table-cell; line-height:50px; text-align:left; font-size:50px;">@Model.StudentName</div>
             </div>
-            <div style="position:absolute; right:50px; top:5px;">
+            <div style="position:absolute; right:50px; top:5px; font-size:30px;">
                 @if (Model.AccountRole == 1)
                 {
                     <span>Student</span>
@@ -44,7 +44,7 @@
     <div style="width:70%; margin:0 auto; margin-top:30px;">
         <div class="row" style="margin-bottom:30px;">
             <div class="col-6">
-                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;" onclick="redirectToAddFace();">
                     <div style="position:absolute; color:white; bottom:20px; right:20px; font-size: 25px; line-height:28px; border-bottom:2px solid white; padding-bottom:10px;">
                         <div style="text-align:right;">Add Faces</div>
                         <div style="text-align:right;">to Recognition</div>
@@ -135,5 +135,9 @@
                 }
             });
         }
+    }
+
+    function redirectToAddFace() {
+        window.location.href = "/Student/AddFace/" + studentId;
     }
 </script>

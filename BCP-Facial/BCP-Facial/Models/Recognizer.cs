@@ -17,6 +17,7 @@ namespace BCP_Facial.Models
         public string Key { get; set; }
         public DateTime LastActivityDateTime { get; set; }
         public string LastActivityAction { get; set; }
+        public virtual ICollection<RecognizerTask> List_RecognizerTask { get; set; }
 
         public Recognizer()
         {

@@ -28,11 +28,13 @@ namespace BCP_Facial.Models
          */
         public int Status { get; set; }
         public virtual Recognizer Recognizer { get; set; }
+        public DateTime DateModified { get; set; }
 
         public RecognizerTask()
         {
             Id = Guid.NewGuid().ToString();
             Status = 1;
+            DateModified = DateTime.UtcNow.AddHours(8);
         }
     }
 }

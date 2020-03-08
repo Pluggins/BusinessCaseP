@@ -442,5 +442,57 @@ namespace BCP_Facial.Controllers.Api
 
             return output;
         }
+
+        [HttpPost]
+        [Route("Api/Student/RetrievePendingPhoto")]
+        public StudentPendingPhotoOutput RetrievePendingPhoto([FromBody] StudentPendingPhotoInput input)
+        {
+            StudentPendingPhotoOutput output = new StudentPendingPhotoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsAdmin)
+                {
+                    BCPUser student = _db._BCPUsers.Where(e => e.Id.Equals(input.StudentId)).FirstOrDefault();
+
+                    if (student == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "STUDENT_NOT_EXIST";
+                    } else
+                    {
+                        List<UserImage> images = student.List_UserImage.Where(e => e.Deleted == false && e.Status == 1).OrderByDescending(e => e.Confidence).ToList();
+                        List<PendingPhotoItem> photoItems = new List<PendingPhotoItem>();
+                        string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
+
+                        foreach (UserImage item in images)
+                        {
+                            PendingPhotoItem newPhotoItem = new PendingPhotoItem()
+                            {
+                                UserImageId = item.Id,
+                                Url = siteUrl + "/" + item.Url,
+                                DateAdded = item.DateCreated
+                            };
+
+                            photoItems.Add(newPhotoItem);
+                        }
+
+                        output.Photos = photoItems;
+                        output.Result = "OK";
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
     }
 }

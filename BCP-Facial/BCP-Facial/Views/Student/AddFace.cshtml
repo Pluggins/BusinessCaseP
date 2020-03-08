@@ -1,0 +1,250 @@
+﻿
+@{
+    ViewData["Title"] = "AddFace";
+}
+
+@model BCP_Facial.Models.ViewModels.AddFaceViewModel
+
+<div style="height:300px;background-color:#624949;position:relative">
+    <div style="position:absolute; text-align:center; width:70%; height:200px; font-size:40px; color:white; top:0%; left:15%;">
+        <div style="border: 5px solid #9f7f6d; height:207px;  position:absolute; background-color:black; top:50px; z-index:1;">
+            @if (Model.Student.StudentImages.Count > 0)
+            {
+                <img src="@ViewBag.SiteUrl/@Model.Student.StudentImages.First().Url" width="150" height="198" />
+            }
+            else
+            {
+                <div style="width:150px;height:198px; vertical-align:middle; display:table-cell;border:3px dashed white;background-color:#4b2929;">
+                    <div>NO</div>
+                    <div>IMAGE</div>
+                </div>
+            }
+        </div>
+        <div style="bottom: 10px;left: 20%;position: absolute;width: 70%;height: 10px;background-color: #9f7f6d;z-index: 0;word-wrap: break-word;">
+            <div style="position:absolute; top:-115px; left:20%; height:100px; min-width:300px; max-width:400px; display:table;">
+                <div style="vertical-align:bottom; display:table-cell; line-height:50px; text-align:left; font-size:50px;">@Model.Student.StudentName</div>
+            </div>
+            <div style="position:absolute; right:50px; top:5px; font-size:30px;">
+                Add Face
+            </div>
+        </div>
+    </div>
+</div>
+<div style="padding:30px 50px;">
+    <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span><a href="/Student/@Model.Student.StudentId">@Model.Student.StudentName</a></span><span class="bread-separator">-></span><span><a href="/Student/AddFace/@Model.Student.StudentId">Add Face</a></span></div>
+    <div style="min-height:30vh;">
+        <div style="width:70%; margin:0 auto; margin-top:40px;" id="recognizerInputFrame">
+            <label for="recognizerInput" style="font-size:20px;margin-bottom:10px;">Select a recognizer to proceed:</label>
+            <select class="form-control" id="recognizerInput" style="font-size:20px;" oninput="selectRecognizer();">
+                <option disabled selected>- Select One -</option>
+                @foreach (Recognizer recognizer in Model.Recognizers)
+                {
+                    <option value="@recognizer.Id">@recognizer.Id</option>
+                }
+            </select>
+        </div>
+        <div id="mainContent">
+            
+        </div>
+    </div>
+    <div id="mainContentPlaceholder" style="display:none;">
+        <div style="border:2px solid black;border-radius:20px;background-color:blanchedalmond; width:50%; margin:0 auto;margin-top:50px; padding: 20px;">
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Recognizer Id:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecId"></span></div>
+            </div>
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Recognizer Status:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecStatus"></span></div>
+            </div>
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Last Activity Since:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecActivity"></span></div>
+            </div>
+        </div>
+        <div style="width:100%;text-align:center; margin: 50px 0px;" id="recognizerBtnFrame">
+            <div class="btn btn-primary disabled tooltip" style="font-size:25px; padding:10px 20px;">Capture Face Now<span style="font-size:14px;" class="tooltiptext">Recognizer is busy now.</span></div>
+        </div>
+    </div>
+    <div id="loadingPage" style="display:none;">
+        <div style="text-align:center;font-size:20px;">Loading...</div>
+    </div>
+    <div id="busyRecognizerBtn" style="display:none;">
+        <div class="btn btn-primary disabled tooltip" style="font-size:25px; padding:10px 20px;">Capture Face Now<span style="font-size:14px;" class="tooltiptext">Recognizer is busy now.</span></div>
+    </div>
+    <div id="activeRecognizerBtn" style="display:none;">
+        <div class="btn btn-primary" style="font-size:25px; padding:10px 20px;" onclick="openCaptureFaceModal();">Capture Face Now</div>
+    </div>
+    <div id="recognizerConsole" style="display:none">
+        <div style="margin:0 auto;margin-top:100px;border:1px solid black; width:50%;padding:30px 20px;background-color:#eeebeb">
+            <div style="font-size:25px; text-align:center;" id="consoleMsg">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="captureFaceConfirmationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Capture Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                Please ensure the student is facing toward the recognizer device.
+                <div style="margin:0 auto; width:80%; padding:10px;">
+                    <div style="text-align:left; border:1px solid black; padding:10px; background-color:#ff8686; font-size:15px;">
+                        NOTE: The currently active faces of the student will become unusable after the training process.
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="proceedConfirmButton" onclick="confirmCaptureFace();">Proceed Now</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var studentId = '@Model.Student.StudentId';
+    var selectedRecognizerId;
+    var recognizerTaskId;
+    var allowProceed = false;
+    var init = true;
+    var read = false;
+    var recId;
+    var recStatus;
+    var recActivity;
+    var loadCycle;
+
+    function selectRecognizer() {
+        clearInterval(loadCycle);
+        selectedRecognizerId = $('#recognizerInput').val();
+        $('#mainContent').html($('#loadingPage').html());
+        $('#mainContent').attr('style', 'margin-top:50px;');
+        $('#mainContent').fadeIn('fast', function () {
+            loadCycle = setInterval(function () {
+                $.ajax({
+                    url: '/Api/Recognizer/GetStatus',
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    async: false,
+                    data: JSON.stringify({ 'recognizerId': selectedRecognizerId }),
+                    success: function (responds) {
+                        recId = responds.recognizerId;
+                        recStatus = responds.recognizerStatus;
+                        recActivity = responds.lastActivity;
+                        postSelectRecognizer();
+                        if (responds.recognizerStatus == "Idle" && allowProceed == false) {
+                            $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
+                            allowProceed = true;
+
+                        } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
+                            $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                            allowProceed = false;
+                        }
+                    },
+                    error: function (request, status, error) {
+                    }
+                });
+            }, 2000);
+        });
+    }
+
+    function postSelectRecognizer() {
+        if (init) {
+            init = false;
+            $('#mainContent').fadeOut('slow', function () {
+                $('#mainContent').html($('#mainContentPlaceholder').html());
+                $('#mainContent').find('#displayRecId').html(recId);
+                $('#mainContent').find('#displayRecStatus').html(recStatus);
+                $('#mainContent').find('#displayRecActivity').html(recActivity);
+                $(this).fadeIn('slow');
+            });
+        } else {
+            $('#mainContent').find('#displayRecId').html(recId);
+            $('#mainContent').find('#displayRecStatus').html(recStatus);
+            $('#mainContent').find('#displayRecActivity').html(recActivity);
+        }
+    }
+
+    function openCaptureFaceModal() {
+        $('#captureFaceConfirmationModal').modal('show');
+    }
+
+    function confirmCaptureFace() {
+        clearInterval(loadCycle);
+        $('#captureFaceConfirmationModal').modal('hide');
+        $('#recognizerInputFrame').fadeOut('fast');
+        $('#mainContent').fadeOut('fast');
+        $('#mainContent').html($('#recognizerConsole').html());
+        $('#mainContent').find('#consoleMsg').html('Sending instruction to device...');
+        $('#mainContent').fadeIn('fast', function () {
+            $.ajax({
+                url: '/Api/RecognizerTask/StudentImageCapture',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'studentId': studentId }),
+                success: function (responds) {
+                    read = false;
+                    $('#consoleMsg').fadeOut('slow', function () {
+                        recognizerTaskId = responds.recognizerTaskId;
+                        $('#consoleMsg').html('Instruction sent, awaiting reply from device...');
+                        $('#consoleMsg').fadeIn();
+                        loadCycle = setInterval(function () {
+                            $.ajax({
+                                url: '/Api/RecognizerTask/CheckStatusById',
+                                type: 'POST',
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                async: false,
+                                data: JSON.stringify({ 'recognizerTaskId': recognizerTaskId }),
+                                success: function (responds) {
+                                    if (responds.status == "CANCELLED") {
+                                        clearInterval(loadCycle);
+                                        $('#consoleMsg').fadeOut('slow', function () {
+                                            $('#consoleMsg').html('Task has been cancelled.');
+                                            $('#consoleMsg').fadeIn('slow');
+                                        });
+                                    } else if (responds.status == "READ") {
+                                        if (!read) {
+                                            read = true;
+                                            $('#consoleMsg').fadeOut('slow', function () {
+                                                $('#consoleMsg').html('Instruction received, processing your request...');
+                                                $('#consoleMsg').fadeIn('slow');
+                                            });
+                                        }
+                                    } else if (responds.status == "DONE") {
+                                        clearInterval(loadCycle);
+                                        $('#consoleMsg').fadeOut('slow', function () {
+                                            $('#consoleMsg').html('Face successfully captured, previewing images now...');
+                                            $('#consoleMsg').fadeIn('slow');
+                                        });
+                                        setTimeout(function () {
+
+                                        }, 2000);
+                                    }
+                                },
+                                error: function (request, status, error) {
+                                }
+                            });
+                        }, 2000);
+                    });
+                },
+                error: function (request, status, error) {
+                    $('#consoleMsg').fadeOut('slow', function () {
+                        $('#consoleMsg').html('Capture error, please refresh the page and try again later.');
+                        $('#consoleMsg').fadeIn();
+                    });
+                }
+            });
+        });
+    }
+    
+</script>
