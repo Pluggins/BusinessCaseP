@@ -127,6 +127,7 @@ namespace BCP_Facial.Controllers.Api
                         task.Status = 2;
                         _db.SaveChanges();
 
+                        output.TaskId = task.Id;
                         output.Command = task.Command;
                         output.PrimaryValue = task.PrimaryValue;
                         output.SecondaryValue = task.SecondaryValue;
@@ -139,6 +140,43 @@ namespace BCP_Facial.Controllers.Api
                 }
             }
 
+            return output;
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("Api/Recognizer/MarkTaskComplete")]
+        public RecognizerInfoOutput MarkTaskComplete([FromBody] RecognizerInfoInput input)
+        {
+            RecognizerInfoOutput output = new RecognizerInfoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                RecognizerService recogService = new RecognizerService(input.RecognizerId, input.RecognizerKey, _db);
+                if (recogService.IsAuthentic)
+                {
+                    RecognizerTask task = recogService.Recognizer.List_RecognizerTask.Where(e => e.Id.Equals(input.RecognizerTaskId) && e.Deleted == false).FirstOrDefault();
+                    if (task == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "TASK_NOT_EXIST";
+                    } else
+                    {
+                        task.Status = 3;
+                        _db.SaveChanges();
+
+                        output.Result = "OK";
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "CREDENTIAL_ERROR";
+                }
+            }
             return output;
         }
     }

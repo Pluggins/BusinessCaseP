@@ -9,6 +9,7 @@ namespace BCP_Facial.Models.ViewModels
     {
         public string RecognizerId { get; set; }
         public string RecognizerKey { get; set; }
+        public string RecognizerTaskId { get; set; }
         public string StudentId { get; set; }
     }
     public class RecognizerInfoOutput
@@ -19,6 +20,7 @@ namespace BCP_Facial.Models.ViewModels
         public string Result { get; set; }
 
         //Recognizer input
+        public string TaskId { get; set; }
         public string Command { get; set; }
         public string PrimaryValue { get; set; }
         public string SecondaryValue { get; set; }

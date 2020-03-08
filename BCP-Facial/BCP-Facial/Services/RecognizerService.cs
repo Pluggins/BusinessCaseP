@@ -33,11 +33,12 @@ namespace BCP_Facial.Services
                 IsExist = false;
             } else
             {
+                if (Recognizer.Key.Equals(RecognizerKey))
+                {
+                    IsAuthentic = true;
+                }
+
                 IsExist = true;
-            }
-            if (Recognizer.Key.Equals(RecognizerKey))
-            {
-                IsAuthentic = true;
             }
         }
 

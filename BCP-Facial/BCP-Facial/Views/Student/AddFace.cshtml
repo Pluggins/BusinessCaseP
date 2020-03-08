@@ -121,6 +121,7 @@
     var loadCycle;
 
     function selectRecognizer() {
+        init = true;
         clearInterval(loadCycle);
         selectedRecognizerId = $('#recognizerInput').val();
         $('#mainContent').html($('#loadingPage').html());
