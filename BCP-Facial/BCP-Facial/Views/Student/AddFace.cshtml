@@ -33,7 +33,7 @@
 <div style="padding:30px 50px;">
     <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span><a href="/Student/@Model.Student.StudentId">@Model.Student.StudentName</a></span><span class="bread-separator">-></span><span><a href="/Student/AddFace/@Model.Student.StudentId">Add Face</a></span></div>
     <div style="min-height:30vh;">
-        <div style="width:70%; margin:0 auto; margin-top:40px;display:none;" id="recognizerInputFrame">
+        <div style="width:70%; margin:0 auto; margin-top:40px;" id="recognizerInputFrame">
             <label for="recognizerInput" style="font-size:20px;margin-bottom:10px;">Select a recognizer to proceed:</label>
             <select class="form-control" id="recognizerInput" style="font-size:20px;" oninput="selectRecognizer();">
                 <option disabled selected>- Select One -</option>
@@ -81,21 +81,18 @@
             </div>
         </div>
     </div>
-    <div id="imageGallery">
+    <div id="imageGallery" style="display:none;">
         <div style="width:80%; margin:40px auto; background-color:#eeebeb; padding:20px; padding-bottom:0px; border:1px solid black;">
             <div style="text-align:center;font-size:20px; margin-bottom:10px;">Image Capture Preview</div>
             <div class="row">
-                <div class="col-6">
-                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
-                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
+                <div class="col-6" id="imgCol1">
                 </div>
-                <div class="col-6">
-                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
+                <div class="col-6" id="imgCol2">
                 </div>
             </div>
         </div>
         <div style="text-align:center;">
-            <div class="btn btn-primary" id="proceedConfirmButton" onclick="confirmCaptureFace();" style="font-size:25px;">Confirm Face</div>
+            <div class="btn btn-primary" id="proceedConfirmButton" onclick="proceedFaceTraining();" style="font-size:25px;">Confirm Face</div>
         </div>
     </div>
 </div>
@@ -181,9 +178,6 @@
         $('#mainContent').find('#consoleMsg').html('Sending instruction to device...');
         $('#mainContent').fadeIn('fast', function () {
             studentImageCapture();
-            loadCycle = setInterval(function () {
-                studentImageCapture();
-            }, 5000);
         });
     }
 
@@ -231,7 +225,7 @@
                                         $('#consoleMsg').fadeIn('slow');
                                     });
                                     setTimeout(function () {
-
+                                        retrievePendingPhoto();
                                     }, 3000);
                                 }
                             },
@@ -291,27 +285,90 @@
             async: false,
             data: JSON.stringify({ 'studentId': studentId }),
             success: function (responds) {
-                recId = responds.recognizerId;
-                recStatus = responds.recognizerStatus;
-                recActivity = responds.lastActivity;
-                postSelectRecognizer();
-                if (responds.Result == "TRAINING_IN_PROGRESS") {
-                    $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
-                    allowProceed = false;
-                } else {
-                    if (responds.recognizerStatus == "Idle" && allowProceed == false) {
-                        $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
-                        allowProceed = true;
-
-                    } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
-                        $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
-                        allowProceed = false;
-                    }
-                }
+                var count = 0;
+                $('#mainContent').fadeOut('fast', function () {
+                    $('#mainContent').html($('#imageGallery').html());
+                    $.each(responds.photos, function () {
+                        var userImageId;
+                        var url;
+                        var dateAdded;
+                        $.each(this, function (key, value) {
+                            if (key == "userImageId") {
+                                userImageId = value;
+                            } else if (key == "url") {
+                                url = value;
+                            } else if (key == "dateAdded") {
+                                dateAdded = value; 
+                            }
+                        });
+                        if (count == 0) {
+                            $('#mainContent').find('#imgCol1').append('<img src="'+url+'" style="width:100%;padding-bottom:20px;" />');
+                            count++;
+                        } else {
+                            $('#mainContent').find('#imgCol2').append('<img src="'+url+'" style="width:100%;padding-bottom:20px;" />');
+                            count = 0;
+                        }
+                    });
+                });
+                $('#mainContent').fadeIn('fast');
             },
             error: function (request, status, error) {
             }
         });
     }
-    
+
+    function proceedFaceTraining() {
+        $('#mainContent').fadeOut('fast', function () {
+            $('#mainContent').html($('#loadingPage').html());
+            $('#mainContent').fadeIn('fast', function () {
+                processPhoto()
+            });
+        });
+    }
+
+    function processPhoto() {
+        $.ajax({
+            url: '/Api/Student/ProcessPhoto',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'studentId': studentId }),
+            success: function (responds) {
+                $('#mainContent').fadeOut('fast', function () {
+                    $('#mainContent').html($('#recognizerConsole').html());
+                    $('#mainContent').find('#consoleMsg').html('Face Registration has been successfully completed.');
+                    $('#mainContent').fadeIn('fast');
+                });
+            },
+            error: function (request, status, error) {
+                var json = JSON.parse(request.responseText);
+                if (json.result == 'TRAINING_IN_PROGRESS') {
+                    $('#mainContent').fadeOut('fast', function () {
+                        $('#mainContent').html($('#recognizerConsole').html());
+                        $('#mainContent').find('#consoleMsg').html('Process abrupted due to another face being trained, please try again later.');
+                        $('#mainContent').fadeIn('fast');
+                    });
+                } else if (json.result == 'IMAGE_USERSTORE_LESS_MIN') {
+                    $('#mainContent').fadeOut('fast', function () {
+                        $('#mainContent').html($('#recognizerConsole').html());
+                        $('#mainContent').find('#consoleMsg').html('Not enough photos have been captured for processing, please try again.');
+                        $('#mainContent').fadeIn('fast');
+                    });
+                } else if (json.result == 'IMAGE_USERSTORE_LESS_ACCURATE') {
+                    $('#mainContent').fadeOut('fast', function () {
+                        $('#mainContent').html($('#recognizerConsole').html());
+                        $('#mainContent').find('#consoleMsg').html('Cannot recognize face accurately, please try again.');
+                        $('#mainContent').fadeIn('fast');
+                    });
+                } else {
+                    $('#mainContent').fadeOut('fast', function () {
+                        $('#mainContent').html($('#recognizerConsole').html());
+                        $('#mainContent').find('#consoleMsg').html('ERROR, please try again later.');
+                        $('#mainContent').fadeIn('fast');
+                    });
+                }
+            }
+        });
+    }
 </script>

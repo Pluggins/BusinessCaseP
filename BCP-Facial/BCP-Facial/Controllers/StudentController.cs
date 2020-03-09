@@ -148,6 +148,7 @@ namespace BCP_Facial.Controllers
                     studentModel.StudentImages = student.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
                     studentModel.StudentId = id;
 
+                    ViewBag.SiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
                     model.Student = studentModel;
                     model.Recognizers = recognizers;
 

@@ -70,7 +70,7 @@ namespace BCP_Facial.Services
 
         public string GetDurationSince()
         {
-            RecognizerTask task = Recognizer.List_RecognizerTask.Where(e => e.Deleted == false).Where(e => e.Status == 1 || e.Status == 2).OrderBy(e => e.DateCreated).FirstOrDefault();
+            RecognizerTask task = Recognizer.List_RecognizerTask.Where(e => e.Deleted == false).OrderByDescending(e => e.DateModified).FirstOrDefault();
             TimeSpan duration;
             if (task == null)
             {

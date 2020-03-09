@@ -159,6 +159,7 @@ namespace BCP_Facial.Controllers.Api
                     } else
                     {
                         task.Status = 2;
+                        task.DateModified = DateTime.UtcNow.AddHours(8);
                         _db.SaveChanges();
 
                         output.TaskId = task.Id;
@@ -200,6 +201,7 @@ namespace BCP_Facial.Controllers.Api
                         output.Result = "TASK_NOT_EXIST";
                     } else
                     {
+                        task.DateModified = DateTime.UtcNow.AddHours(8);
                         task.Status = 3;
                         _db.SaveChanges();
 

@@ -57,6 +57,12 @@ namespace BCP_Facial.Controllers.Api
                     }
                     else
                     {
+                        List<UserImage> studentImages = student.List_UserImage.Where(e => e.Deleted == false && e.Status != 0).ToList();
+                        foreach (UserImage item in studentImages)
+                        {
+                            item.Status = 0;
+                        }
+
                         RecognizerTask task = new RecognizerTask()
                         {
                             Command = "REGISTER_NEW_FACE",
