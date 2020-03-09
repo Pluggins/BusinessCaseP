@@ -11,6 +11,7 @@ namespace BCP_Facial.Models.ViewModels
         public string RecognizerKey { get; set; }
         public string RecognizerTaskId { get; set; }
         public string StudentId { get; set; }
+        public string Type { get; set; }
     }
     public class RecognizerInfoOutput
     {

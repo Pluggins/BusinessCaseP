@@ -33,7 +33,7 @@
 <div style="padding:30px 50px;">
     <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span><a href="/Student/@Model.Student.StudentId">@Model.Student.StudentName</a></span><span class="bread-separator">-></span><span><a href="/Student/AddFace/@Model.Student.StudentId">Add Face</a></span></div>
     <div style="min-height:30vh;">
-        <div style="width:70%; margin:0 auto; margin-top:40px;" id="recognizerInputFrame">
+        <div style="width:70%; margin:0 auto; margin-top:40px;display:none;" id="recognizerInputFrame">
             <label for="recognizerInput" style="font-size:20px;margin-bottom:10px;">Select a recognizer to proceed:</label>
             <select class="form-control" id="recognizerInput" style="font-size:20px;" oninput="selectRecognizer();">
                 <option disabled selected>- Select One -</option>
@@ -79,6 +79,23 @@
         <div style="margin:0 auto;margin-top:100px;border:1px solid black; width:50%;padding:30px 20px;background-color:#eeebeb">
             <div style="font-size:25px; text-align:center;" id="consoleMsg">
             </div>
+        </div>
+    </div>
+    <div id="imageGallery">
+        <div style="width:80%; margin:40px auto; background-color:#eeebeb; padding:20px; padding-bottom:0px; border:1px solid black;">
+            <div style="text-align:center;font-size:20px; margin-bottom:10px;">Image Capture Preview</div>
+            <div class="row">
+                <div class="col-6">
+                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
+                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
+                </div>
+                <div class="col-6">
+                    <img src="~/image/IMG_20200227_165718.jpg" style="width:100%;padding-bottom:20px;" />
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <div class="btn btn-primary" id="proceedConfirmButton" onclick="confirmCaptureFace();" style="font-size:25px;">Confirm Face</div>
         </div>
     </div>
 </div>
@@ -127,32 +144,10 @@
         $('#mainContent').html($('#loadingPage').html());
         $('#mainContent').attr('style', 'margin-top:50px;');
         $('#mainContent').fadeIn('fast', function () {
+            getStatus();
             loadCycle = setInterval(function () {
-                $.ajax({
-                    url: '/Api/Recognizer/GetStatus',
-                    type: 'POST',
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    async: false,
-                    data: JSON.stringify({ 'recognizerId': selectedRecognizerId }),
-                    success: function (responds) {
-                        recId = responds.recognizerId;
-                        recStatus = responds.recognizerStatus;
-                        recActivity = responds.lastActivity;
-                        postSelectRecognizer();
-                        if (responds.recognizerStatus == "Idle" && allowProceed == false) {
-                            $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
-                            allowProceed = true;
-
-                        } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
-                            $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
-                            allowProceed = false;
-                        }
-                    },
-                    error: function (request, status, error) {
-                    }
-                });
-            }, 2000);
+                getStatus();
+            }, 5000);
         });
     }
 
@@ -185,66 +180,137 @@
         $('#mainContent').html($('#recognizerConsole').html());
         $('#mainContent').find('#consoleMsg').html('Sending instruction to device...');
         $('#mainContent').fadeIn('fast', function () {
-            $.ajax({
-                url: '/Api/RecognizerTask/StudentImageCapture',
-                type: 'POST',
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                async: false,
-                data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'studentId': studentId }),
-                success: function (responds) {
-                    read = false;
-                    $('#consoleMsg').fadeOut('slow', function () {
-                        recognizerTaskId = responds.recognizerTaskId;
-                        $('#consoleMsg').html('Instruction sent, awaiting reply from device...');
-                        $('#consoleMsg').fadeIn();
-                        loadCycle = setInterval(function () {
-                            $.ajax({
-                                url: '/Api/RecognizerTask/CheckStatusById',
-                                type: 'POST',
-                                contentType: "application/json; charset=utf-8",
-                                dataType: "json",
-                                async: false,
-                                data: JSON.stringify({ 'recognizerTaskId': recognizerTaskId }),
-                                success: function (responds) {
-                                    if (responds.status == "CANCELLED") {
-                                        clearInterval(loadCycle);
-                                        $('#consoleMsg').fadeOut('slow', function () {
-                                            $('#consoleMsg').html('Task has been cancelled.');
-                                            $('#consoleMsg').fadeIn('slow');
-                                        });
-                                    } else if (responds.status == "READ") {
-                                        if (!read) {
-                                            read = true;
-                                            $('#consoleMsg').fadeOut('slow', function () {
-                                                $('#consoleMsg').html('Instruction received, processing your request...');
-                                                $('#consoleMsg').fadeIn('slow');
-                                            });
-                                        }
-                                    } else if (responds.status == "DONE") {
-                                        clearInterval(loadCycle);
-                                        $('#consoleMsg').fadeOut('slow', function () {
-                                            $('#consoleMsg').html('Face successfully captured, previewing images now...');
-                                            $('#consoleMsg').fadeIn('slow');
-                                        });
-                                        setTimeout(function () {
+            studentImageCapture();
+            loadCycle = setInterval(function () {
+                studentImageCapture();
+            }, 5000);
+        });
+    }
 
-                                        }, 2000);
+    function studentImageCapture() {
+        $.ajax({
+            url: '/Api/RecognizerTask/StudentImageCapture',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'studentId': studentId }),
+            success: function (responds) {
+                read = false;
+                $('#consoleMsg').fadeOut('slow', function () {
+                    recognizerTaskId = responds.recognizerTaskId;
+                    $('#consoleMsg').html('Instruction sent, awaiting reply from device...');
+                    $('#consoleMsg').fadeIn();
+                    loadCycle = setInterval(function () {
+                        $.ajax({
+                            url: '/Api/RecognizerTask/CheckStatusById',
+                            type: 'POST',
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: false,
+                            data: JSON.stringify({ 'recognizerTaskId': recognizerTaskId }),
+                            success: function (responds) {
+                                if (responds.status == "CANCELLED") {
+                                    clearInterval(loadCycle);
+                                    $('#consoleMsg').fadeOut('slow', function () {
+                                        $('#consoleMsg').html('Task has been cancelled.');
+                                        $('#consoleMsg').fadeIn('slow');
+                                    });
+                                } else if (responds.status == "READ") {
+                                    if (!read) {
+                                        read = true;
+                                        $('#consoleMsg').fadeOut('slow', function () {
+                                            $('#consoleMsg').html('Instruction received, processing your request...');
+                                            $('#consoleMsg').fadeIn('slow');
+                                        });
                                     }
-                                },
-                                error: function (request, status, error) {
+                                } else if (responds.status == "DONE") {
+                                    clearInterval(loadCycle);
+                                    $('#consoleMsg').fadeOut('slow', function () {
+                                        $('#consoleMsg').html('Face successfully captured, previewing images now...');
+                                        $('#consoleMsg').fadeIn('slow');
+                                    });
+                                    setTimeout(function () {
+
+                                    }, 3000);
                                 }
-                            });
-                        }, 2000);
-                    });
-                },
-                error: function (request, status, error) {
-                    $('#consoleMsg').fadeOut('slow', function () {
-                        $('#consoleMsg').html('Capture error, please refresh the page and try again later.');
-                        $('#consoleMsg').fadeIn();
-                    });
+                            },
+                            error: function (request, status, error) {
+                            }
+                        });
+                    }, 5000);
+                });
+            },
+            error: function (request, status, error) {
+                $('#consoleMsg').fadeOut('slow', function () {
+                    $('#consoleMsg').html('Capture error, please refresh the page and try again later.');
+                    $('#consoleMsg').fadeIn();
+                });
+            }
+        });
+    }
+
+    function getStatus() {
+        $.ajax({
+            url: '/Api/Recognizer/GetStatus',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'type': 'REGISTER_NEW_FACE' }),
+            success: function (responds) {
+                recId = responds.recognizerId;
+                recStatus = responds.recognizerStatus;
+                recActivity = responds.lastActivity;
+                postSelectRecognizer();
+                if (responds.Result == "TRAINING_IN_PROGRESS") {
+                    $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                    allowProceed = false;
+                } else {
+                    if (responds.recognizerStatus == "Idle" && allowProceed == false) {
+                        $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
+                        allowProceed = true;
+
+                    } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
+                        $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                        allowProceed = false;
+                    }
                 }
-            });
+            },
+            error: function (request, status, error) {
+            }
+        });
+    }
+
+    function retrievePendingPhoto() {
+        $.ajax({
+            url: '/Api/Student/RetrievePendingPhoto',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'studentId': studentId }),
+            success: function (responds) {
+                recId = responds.recognizerId;
+                recStatus = responds.recognizerStatus;
+                recActivity = responds.lastActivity;
+                postSelectRecognizer();
+                if (responds.Result == "TRAINING_IN_PROGRESS") {
+                    $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                    allowProceed = false;
+                } else {
+                    if (responds.recognizerStatus == "Idle" && allowProceed == false) {
+                        $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
+                        allowProceed = true;
+
+                    } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
+                        $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                        allowProceed = false;
+                    }
+                }
+            },
+            error: function (request, status, error) {
+            }
         });
     }
     

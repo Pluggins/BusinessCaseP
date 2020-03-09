@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -63,7 +65,7 @@ namespace BCP_Facial.Controllers.Api
 
         [HttpPost]
         [Route("Api/Recognizer/GetStatus")]
-        public RecognizerInfoOutput GetStatus([FromBody] RecognizerInfoInput input)
+        public async Task<RecognizerInfoOutput> GetStatus([FromBody] RecognizerInfoInput input)
         {
             RecognizerInfoOutput output = new RecognizerInfoOutput();
 
@@ -87,10 +89,42 @@ namespace BCP_Facial.Controllers.Api
                     }
                     else
                     {
+                        string trainingStatus = "NONE";
+                        if (!string.IsNullOrEmpty(input.Type))
+                        {
+                            if (input.Type.Equals("REGISTER_NEW_FACE"))
+                            {
+                                string personGroupId = _db.SiteConfigs.Where(e => e.Key.Equals("PERSONGROUP")).FirstOrDefault().Value;
+                                Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/persongroups/" + personGroupId + "/training");
+                                HttpClientHandler handler = new HttpClientHandler();
+                                HttpClient client = new HttpClient(handler);
+                                //string respond = null;
+                                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                                HttpResponseMessage response = await client.GetAsync(uri);
+                                string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
+                                string respond = await response.Content.ReadAsStringAsync();
+                                dynamic jsonObj = JsonConvert.DeserializeObject(respond);
+                                if (jsonObj.status != null)
+                                {
+                                    trainingStatus = jsonObj.status;
+                                }
+                                else
+                                {
+                                    trainingStatus = "NONE";
+                                }
+                            }
+                        }
                         output.RecognizerId = recogService.Recognizer.Id;
                         output.RecognizerStatus = recogService.GetStatus();
                         output.LastActivity = recogService.GetDurationSince();
-                        output.Result = "OK";
+
+                        if (trainingStatus == "running")
+                        {
+                            output.Result = "TRAINING_IN_PROGRESS";
+                        } else
+                        {
+                            output.Result = "OK";
+                        }
                     }
                 }
                 else
