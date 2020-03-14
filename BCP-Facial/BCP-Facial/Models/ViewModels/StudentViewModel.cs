@@ -14,5 +14,6 @@ namespace BCP_Facial.Models.ViewModels
         public int AccountRole { get; set; }
         public List<UserImage> StudentImages { get; set; }
         public string StudentId { get; set; }
+        public string StudentEmail { get; set; }
     }
 }

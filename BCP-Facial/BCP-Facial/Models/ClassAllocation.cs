@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace BCP_Facial.Models
 {
     [Table("ClassAllocations")]
-    public class ClassAllocation
+    public class ClassAllocation : _CommonAttribute
     {
         [Key]
         public string Id { get; set; }

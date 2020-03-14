@@ -77,6 +77,7 @@ namespace BCP_Facial.Controllers
                     model.AccountRole = user.Status;
                     model.StudentImages = user.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
                     model.StudentId = id;
+                    model.StudentEmail = user.Email;
                 }
 
                 ViewBag.SiteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).First().Value;
@@ -157,6 +158,48 @@ namespace BCP_Facial.Controllers
             } else
             {
                 return RedirectToAction("Index", "Home");
+            }
+        }
+
+        [Route("Student/SetClass/{id}")]
+        public IActionResult SetClass(string id)
+        {
+            BCPUser student = _db._BCPUsers.Where(e => e.Id.Equals(id)).FirstOrDefault();
+            if (student == null)
+            {
+                return RedirectToAction("Index", "Student");
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsAdmin)
+                {
+                    SetClassViewModel model = new SetClassViewModel();
+                    StudentViewModel studentModel = new StudentViewModel();
+                    List<SetClassItem> classModel = new List<SetClassItem>();
+                    studentModel.StudentName = student.Name;
+                    studentModel.AccountRole = student.Status;
+                    studentModel.StudentImages = student.List_UserImage.Where(e => e.Deleted == false && e.Status == 2).OrderByDescending(e => e.Confidence).ToList();
+                    studentModel.StudentId = id;
+                    List<ClassAllocation> classes = student.List_ClassAllocation.Where(e => e.Deleted == false).ToList();
+
+                    foreach(ClassAllocation item in classes)
+                    {
+                        SetClassItem newClassItem = new SetClassItem()
+                        {
+                            ClassName = item.Class.Name,
+                            DateJoined = item.DateCreated
+                        };
+
+                        classModel.Add(newClassItem);
+                    }
+
+                    model.Classes = classModel;
+                    model.Student = studentModel;
+                    return View(model);
+                } else
+                {
+                    return RedirectToAction("Index", "Student");
+                }
             }
         }
     }

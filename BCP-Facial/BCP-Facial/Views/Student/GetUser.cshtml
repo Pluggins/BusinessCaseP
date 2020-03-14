@@ -62,7 +62,7 @@
         </div>
         <div class="row" style="margin-bottom:10px;">
             <div class="col-6">
-                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;" onclick="redirectToSetClass();">
                     <div style="position:absolute; color:white; top:20px; right:20px; font-size: 25px; line-height:28px; border-top:2px solid white; padding-top:5px;">
                         <div style="text-align:right;">Add Student</div>
                         <div style="text-align:right;">to a Class</div>
@@ -70,7 +70,7 @@
                 </div>
             </div>
             <div class="col-6">
-                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;">
+                <div class="student-cat" style="height:200px;width:98%; border:3px solid #8e6363; position:relative;" onclick="redirectToDetail();">
                     <div style="position:absolute; color:white; top:20px; left:20px; font-size: 25px; line-height:28px; border-top:2px solid white; padding-top:5px;">
                         <div style="text-align:left;">View Student's</div>
                         <div style="text-align:left;">Details</div>
@@ -139,5 +139,13 @@
 
     function redirectToAddFace() {
         window.location.href = "/Student/AddFace/" + studentId;
+    }
+
+    function redirectToDetail() {
+        window.location.href = "/Student/Detail/" + studentId;
+    }
+
+    function redirectToSetClass() {
+        window.location.href = "/Student/SetClass/" + studentId;
     }
 </script>
