@@ -4,6 +4,7 @@ using BCP_Facial.Models.ViewModels;
 using BCP_Facial.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -337,6 +338,127 @@ namespace BCP_Facial.Controllers.Api
                         Response.StatusCode = 400;
                         output.Result = "CREDENTIAL_ERROR";
                     }
+                }
+            }
+
+            return output;
+        }
+
+        [HttpPost]
+        [Route("Api/Class/ProcessPhoto")]
+        public async Task<ClassInfoOutput> ProcessPhoto([FromBody] ClassInfoInput input)
+        {
+            ClassInfoOutput output = new ClassInfoOutput();
+            bool failure = false;
+
+            AspUserService aspUser = new AspUserService(_db, this);
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                if (aspUser.IsLecturer)
+                {
+                    Class thisClass = aspUser.User.List_Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+                    if (thisClass == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CLASS_NOT_EXIST";
+                    } else
+                    {
+                        string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value;
+                        List<string> faceIds = new List<string>();
+                        List<string> personIds = new List<string>();
+                        List<GroupImage> images = thisClass.List_GroupImages.Where(e => e.Status == 1 && e.Deleted == false).ToList();
+                        
+                        foreach (GroupImage item in images)
+                        {
+                            string personGroupId = _db.SiteConfigs.Where(e => e.Key.Equals("PERSONGROUP")).FirstOrDefault().Value;
+                            Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/detect?recognitionModel=recognition_02");
+                            HttpClientHandler handler = new HttpClientHandler();
+                            StringContent queryString = null;
+                            HttpClient client = new HttpClient(handler);
+                            //string respond = null;
+                            ClassDetectImage detectImg = new ClassDetectImage()
+                            {
+                                Url = siteUrl+"/"+item.Url
+                            };
+                            queryString = new StringContent(JsonConvert.SerializeObject(detectImg), Encoding.UTF8, "application/json");
+                            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                            HttpResponseMessage response = await client.PostAsync(uri, queryString);
+                            string respond = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = JsonConvert.DeserializeObject(respond);
+                            foreach (var obj in jsonObj)
+                            {
+                                try
+                                {
+                                    faceIds.Add((string)obj.faceId);
+                                } catch (RuntimeBinderException e)
+                                {
+
+                                }
+                                
+                            }
+                        }
+
+                        bool completeCycle = false;
+                        int multiple = 0;
+                        while (!completeCycle)
+                        {
+                            List<string> tmpFaceIds = new List<string>();
+                            for (int i = 0 + 10*multiple; i < 10 + 10*multiple; i++)
+                            {
+                                if (i > faceIds.Count() - 1)
+                                {
+                                    completeCycle = true;
+                                } else
+                                {
+                                    tmpFaceIds.Add(faceIds.ElementAt(i));
+                                }
+                                
+                            }
+                            string personGroupId = _db.SiteConfigs.Where(e => e.Key.Equals("PERSONGROUP")).FirstOrDefault().Value;
+                            Uri uri = new Uri("https://bcp-facial.cognitiveservices.azure.com/face/v1.0/identify");
+                            HttpClientHandler handler = new HttpClientHandler();
+                            StringContent queryString = null;
+                            HttpClient client = new HttpClient(handler);
+                            //string respond = null;
+                            
+                            ClassIdentifyImage identifyImg = new ClassIdentifyImage()
+                            {
+                                ConfidenceThreshold = "0.5",
+                                MaxNumOfCandidatesReturned = "1",
+                                PersonGroupId = personGroupId,
+                                FaceIds = tmpFaceIds
+                            };
+                            queryString = new StringContent(JsonConvert.SerializeObject(identifyImg), Encoding.UTF8, "application/json");
+                            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "8d4c42ecbb784d909275492115ea56f0");
+                            HttpResponseMessage response = await client.PostAsync(uri, queryString);
+                            string respond = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = JsonConvert.DeserializeObject(respond);
+                            foreach (var obj in jsonObj)
+                            {
+                                try
+                                {
+                                    foreach (var tmpObj in obj.candidates)
+                                    {
+                                        personIds.Add((string)tmpObj.personId);
+                                    }
+                                } catch (RuntimeBinderException e)
+                                {
+
+                                }
+                                
+                            }
+                            multiple++;
+                        }
+                    }
+                }
+                else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
                 }
             }
 
