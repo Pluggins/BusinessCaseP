@@ -3,6 +3,9 @@
     ViewData["Title"] = "MyClass";
 }
 
+@model BCP_Facial.Models.ViewModels.MyClassViewModel
+@using  BCP_Facial.Models.ViewModels
+
 <div style="height: 120px;background-color: #624949;position: relative">
     <div style="position:absolute; text-align:center; width:100%; font-size:40px; color:white; top:30%">
         My Class
@@ -16,19 +19,76 @@
                 <th>Class Name</th>
                 <th>Capacity</th>
                 <th>Date Created</th>
-                <th>Option</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (Class item in Model.Classes)
+            @foreach (MyClassItem item in Model.Classes)
             {
                 <tr>
-                    <td><a href="/Class/@item.Id">@item.Name</a></td>
-                    <td>@item.List_ClassAllocation.Where(e => e.Deleted == false).Count()/@item.Capacity</td>
+                    <td><a href="/MyClass/@item.ClassId">@item.ClassName</a></td>
+                    <td>@item.Capacity</td>
                     <td>@item.DateCreated</td>
-                    <td><div class="btn btn-danger" onclick="removeClass('@item.Id', this);" id="@item.Id">Remove</div></td>
                 </tr>
             }
         </tbody>
     </table>
 </div>
+
+<div class="modal fade" id="captureClassModal" tabindex="-1" role="dialog" aria-labelledby="captureClassModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div style="background-color:#ffb26e1f;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add New Class</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <div class="form-box">
+                                <div>
+                                    <label for="Name">Class Name:</label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="ClassName" type="text" />
+                                    </div>
+                                </div>
+                                <div style="margin-top:5px;">
+                                    <label for="Name">Class Code:</label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="ClassCode" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="errorFrame" style="display:none;">
+                                <div id="errorMsg">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="addClassButton" onclick="addClass();">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#classList').DataTable({
+            'order': [[2, "asc"]],
+            "columnDefs": [
+                { "width": "250px", "targets": 0 },
+                { "width": "100px", "targets": 1 },
+                { "width": "100px", "targets": 2 }
+            ],
+        });
+    });
+</script>

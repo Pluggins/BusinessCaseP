@@ -29,6 +29,7 @@ namespace BCP_Facial.Models
         public virtual ICollection<ClassAllocation> List_ClassAllocation { get; set; }
         public virtual ICollection<UserImage> List_UserImage { get; set; }
         public virtual ICollection<AttendanceItem> List_AttendanceItems { get; set; }
+        public virtual ICollection<Class> List_Classes { get; set; }
 
         public BCPUser()
         {
