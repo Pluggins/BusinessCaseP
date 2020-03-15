@@ -242,5 +242,105 @@ namespace BCP_Facial.Controllers.Api
 
             return output;
         }
+
+        [HttpPost]
+        [Route("Api/Class/RetrievePendingPhoto")]
+        public ClassPendingPhotoOutput RetrievePendingPhoto([FromBody] ClassPendingPhotoInput input)
+        {
+            ClassPendingPhotoOutput output = new ClassPendingPhotoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsLecturer)
+                {
+                    Class thisClass = aspUser.User.List_Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+                    if (thisClass == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CLASS_NOT_EXIST";
+                    } else
+                    {
+                        string siteUrl = _db.SiteConfigs.Where(e => e.Key.Equals("SITEURL")).FirstOrDefault().Value;
+                        List<GroupImage> images = thisClass.List_GroupImages.Where(e => e.Status == 1 && e.Deleted == false).ToList();
+                        List<ClassPendingPhotoItem> photos = new List<ClassPendingPhotoItem>();
+                        foreach (GroupImage item in images)
+                        {
+                            ClassPendingPhotoItem photoItem = new ClassPendingPhotoItem()
+                            {
+                                Url = siteUrl + "/"+item.Url
+                            };
+                            photos.Add(photoItem);
+                        }
+
+                        output.Photos = photos;
+                        output.Result = "OK";
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("Api/Class/AddPhoto")]
+        public ClassInfoOutput AddPhoto([FromBody] ClassInfoInput input)
+        {
+            ClassInfoOutput output = new ClassInfoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                Recognizer recognizer = _db.Recognizers.Where(e => e.Id.Equals(input.RecognizerId) && e.Deleted == false).FirstOrDefault();
+                if (recognizer == null)
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "RECOGNIZER_NOT_EXIST";
+                } else
+                {
+                    if (recognizer.Key.Equals(input.RecognizerKey))
+                    {
+                        Class thisClass = _db.Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+                        if (thisClass == null)
+                        {
+                            Response.StatusCode = 400;
+                            output.Result = "CLASS_NOT_EXIST";
+                        } else
+                        {
+                            GroupImage gi = new GroupImage
+                            {
+                                Url = input.ImageUrl,
+                                Class = thisClass,
+                                CreatedBy = recognizer.Id,
+                                Status = 1
+                            };
+
+                            _db.GroupImages.Add(gi);
+                            _db.SaveChanges();
+                            output.Result = "OK";
+                        }
+                    } else
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CREDENTIAL_ERROR";
+                    }
+                }
+            }
+
+            return output;
+        }
     }
 }

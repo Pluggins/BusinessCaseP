@@ -91,6 +91,70 @@ namespace BCP_Facial.Controllers.Api
         }
 
         [HttpPost]
+        [Route("Api/RecognizerTask/GroupImageCapture")]
+        public RecognizerTaskOutput GroupImageCapture([FromBody] RecognizerTaskInput input)
+        {
+            RecognizerTaskOutput output = new RecognizerTaskOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            }
+            else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsAdmin)
+                {
+                    Recognizer recognizer = _db.Recognizers.Where(e => e.Id.Equals(input.RecognizerId) && e.Deleted == false).FirstOrDefault();
+                    Class thisClass = aspUser.User.List_Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+
+                    if (recognizer == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "RECOGNIZER_NOT_FOUND";
+                    }
+                    else if (thisClass == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CLASS_NOT_FOUND";
+                    }
+                    else
+                    {
+                        List<GroupImage> groupImages = thisClass.List_GroupImages.Where(e => e.Deleted == false && e.Status != 0).ToList();
+                        foreach (GroupImage item in groupImages)
+                        {
+                            item.Status = 0;
+                        }
+
+                        RecognizerTask task = new RecognizerTask()
+                        {
+                            Command = "CAPTURE_CLASS_IMAGE",
+                            Status = 1,
+                            Recognizer = recognizer,
+                            PrimaryValue = thisClass.Id,
+                            SecondaryValue = (int.Parse(_db.SiteConfigs.Where(e => e.Key.Equals("NUM_PHOTO_PER_CLASS")).FirstOrDefault().Value) + 5).ToString()
+                        };
+
+                        _db.RecognizerTasks.Add(task);
+                        _db.SaveChanges();
+
+                        output.RecognizerTaskId = task.Id;
+                        output.Result = "OK";
+                    }
+
+                }
+                else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
+
+        [HttpPost]
         [Route("Api/RecognizerTask/CheckStatusById")]
         public RecognizerTaskOutput CheckStatusById([FromBody] RecognizerTaskInput input)
         {

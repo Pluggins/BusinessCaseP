@@ -4,14 +4,16 @@ using BCP_Facial.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BCP_Facial.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200315151817_update7")]
+    partial class update7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -357,14 +359,14 @@ namespace BCP_Facial.Migrations
                         new
                         {
                             Id = "EF7A8FDE-0005-4085-B26F-37D7278BE768",
-                            ConcurrencyStamp = "8e6c04af-02ea-4d69-9bcd-40d2208370b6",
+                            ConcurrencyStamp = "bc583b4f-cf2e-4c95-8dac-f845793d9b7e",
                             Name = "LECTURER",
                             NormalizedName = "LECTURER"
                         },
                         new
                         {
                             Id = "4FBD4989-DF6E-479A-AE7D-641700E09A84",
-                            ConcurrencyStamp = "9606ad68-8484-49e8-a11b-92acfa611477",
+                            ConcurrencyStamp = "4123d82f-6bd9-40ef-beb2-3ebc938ff7e9",
                             Name = "ADMIN",
                             NormalizedName = "ADMIN"
                         });
@@ -591,7 +593,7 @@ namespace BCP_Facial.Migrations
             modelBuilder.Entity("BCP_Facial.Models.GroupImage", b =>
                 {
                     b.HasOne("BCP_Facial.Models.Class", "Class")
-                        .WithMany("List_GroupImages")
+                        .WithMany()
                         .HasForeignKey("ClassId");
                 });
 

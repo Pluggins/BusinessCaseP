@@ -112,5 +112,38 @@ namespace BCP_Facial.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
+
+        [Route("MyClass/TakeAttendance/{id}")]
+        public IActionResult TakeAttendance(string id)
+        {
+            if (User.IsInRole("LECTURER"))
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsLecturer)
+                {
+                    Class thisClass = aspUser.User.List_Classes.Where(e => e.Id.Equals(id) && e.Deleted == false).FirstOrDefault();
+                    if (thisClass == null)
+                    {
+                        return RedirectToAction("Index", "MyClass");
+                    } else
+                    {
+                        MyClassAttendanceViewModel model = new MyClassAttendanceViewModel()
+                        {
+                            ClassId = thisClass.Id,
+                            ClassName = thisClass.Name,
+                            Recognizers = _db.Recognizers.Where(e => e.Deleted == false).ToList()
+                        };
+
+                        return View(model);
+                    }
+                } else
+                {
+                    return RedirectToAction("Index", "MyClass");
+                }
+            } else
+            {
+                return RedirectToAction("Index", "MyClass");
+            }
+        }
     }
 }

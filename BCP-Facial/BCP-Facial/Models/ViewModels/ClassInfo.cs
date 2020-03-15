@@ -13,6 +13,9 @@ namespace BCP_Facial.Models.ViewModels
         public string LecturerId { get; set; }
         public string StudentId { get; set; }
         public int Capacity { get; set; }
+        public string RecognizerId { get; set; }
+        public string RecognizerKey { get; set; }
+        public string ImageUrl { get; set; }
     }
     public class ClassInfoOutput
     {

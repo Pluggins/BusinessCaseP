@@ -30,12 +30,12 @@
 
     function linkImg(url) {
         $.ajax({
-            url: '/Api/Student/AddPhoto',
+            url: '/Api/Class/AddPhoto',
             type: 'POST',
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             async: false,
-            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'StudentId': 'c64600c1-d5d4-41b0-a800-f0372ab52fbd', 'ImageUrl': url }),
+            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'classId': '62613087-9c91-4b48-82c3-041376819d3a', 'ImageUrl': url }),
             success: function (data) {
             },
             error: function (data) {

@@ -23,6 +23,7 @@ namespace BCP_Facial.Data
         public DbSet<AttendanceItem> AttendanceItems { get; set; }
         public DbSet<SiteConfig> SiteConfigs { get; set; }
         public DbSet<UserImage> UserImages { get; set; }
+        public DbSet<GroupImage> GroupImages { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -47,6 +48,7 @@ namespace BCP_Facial.Data
                 new SiteConfig { Key = "SITEURL", Value = "https://bcp.amazecraft.net" },
                 new SiteConfig { Key = "PERSONGROUP", Value = "bebc3187-603c-4f85-8e33-7f60b148458d" },
                 new SiteConfig { Key = "NUM_PHOTO_PER_STUDENT", Value = "3" });
+                //new SiteConfig { Key = "NUM_PHOTO_PER_CLASS", Value = "5" });
         }
     }
 }

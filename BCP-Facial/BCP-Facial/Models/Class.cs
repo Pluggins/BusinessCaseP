@@ -19,6 +19,7 @@ namespace BCP_Facial.Models
         public virtual BCPUser Lecturer { get; set; }
         public virtual ICollection<ClassAllocation> List_ClassAllocation { get; set; }
         public virtual ICollection<Attendance> List_Attendances { get; set; }
+        public virtual ICollection<GroupImage> List_GroupImages { get; set; }
         
         public Class()
         {

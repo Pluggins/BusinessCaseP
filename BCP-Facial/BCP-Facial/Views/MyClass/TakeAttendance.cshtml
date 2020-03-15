@@ -1,0 +1,286 @@
+﻿
+@{
+    ViewData["Title"] = "TakeAttendance";
+}
+@model BCP_Facial.Models.ViewModels.MyClassAttendanceViewModel
+<div style="height: 120px;background-color: #624949;position: relative">
+    <div style="position:absolute; text-align:center; width:100%; font-size:40px; color:white; top:30%">
+        @Model.ClassName
+    </div>
+</div>
+
+<div style="padding:30px 50px;">
+    <div class="bread-crumb"><span><a href="/MyClass">My Classes</a></span><span class="bread-separator">-></span><span><a href="/MyClass/@Model.ClassId">@Model.ClassName</a></span><span class="bread-separator">-></span><span class="bread-target"><a href="/MyClass/TakeAttendance/@Model.ClassId">Take Attendance</a></span></div>
+    <div style="min-height:30vh;">
+        <div style="width:70%; margin:0 auto; margin-top:50px;" id="recognizerInputFrame">
+            <label for="recognizerInput" style="font-size:20px;margin-bottom:10px;">Select a recognizer to proceed:</label>
+            <select class="form-control" id="recognizerInput" style="font-size:20px;" oninput="selectRecognizer();">
+                <option disabled selected>- Select One -</option>
+                @foreach (Recognizer recognizer in Model.Recognizers)
+                {
+                    <option value="@recognizer.Id">@recognizer.Id</option>
+                }
+            </select>
+        </div>
+        <div id="mainContent">
+
+        </div>
+    </div>
+    <div id="mainContentPlaceholder" style="display:none;">
+        <div style="border:2px solid black;border-radius:20px;background-color:blanchedalmond; width:50%; margin:0 auto;margin-top:50px; padding: 20px;">
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Recognizer Id:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecId"></span></div>
+            </div>
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Recognizer Status:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecStatus"></span></div>
+            </div>
+            <div class="row">
+                <div class="col-5" style="text-align:right; padding-right:8px; font-weight:600;">Last Activity Since:</div>
+                <div class="col-7" style="text-align:left; padding-left:0px;"><span id="displayRecActivity"></span></div>
+            </div>
+        </div>
+        <div style="width:100%;text-align:center; margin: 50px 0px;" id="recognizerBtnFrame">
+            <div class="btn btn-primary disabled tooltip" style="font-size:25px; padding:10px 20px;">Capture Class Now<span style="font-size:14px;" class="tooltiptext">Recognizer is busy now.</span></div>
+        </div>
+    </div>
+    <div id="loadingPage" style="display:none;">
+        <div style="text-align:center;font-size:20px;">Loading...</div>
+    </div>
+    <div id="busyRecognizerBtn" style="display:none;">
+        <div class="btn btn-primary disabled tooltip" style="font-size:25px; padding:10px 20px;">Capture Class Now<span style="font-size:14px;" class="tooltiptext">Recognizer is busy now.</span></div>
+    </div>
+    <div id="activeRecognizerBtn" style="display:none;">
+        <div class="btn btn-primary" style="font-size:25px; padding:10px 20px;" onclick="openCaptureModal();">Capture Class Now</div>
+    </div>
+    <div id="recognizerConsole" style="display:none">
+        <div style="margin:0 auto;margin-top:100px;border:1px solid black; width:50%;padding:30px 20px;background-color:#eeebeb">
+            <div style="font-size:25px; text-align:center;" id="consoleMsg">
+            </div>
+        </div>
+    </div>
+    <div id="imageGallery" style="display:none;">
+        <div style="width:80%; margin:40px auto; background-color:#eeebeb; padding:20px; padding-bottom:0px; border:1px solid black;">
+            <div style="text-align:center;font-size:20px; margin-bottom:10px;">Image Capture Preview</div>
+            <div class="row">
+                <div class="col-6" id="imgCol1">
+                </div>
+                <div class="col-6" id="imgCol2">
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <div class="btn btn-primary" id="proceedConfirmButton" onclick="proceedTraining();" style="font-size:25px;">Confirm Captures</div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="captureConfirmationModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Capture Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                Please ensure all students are present in class and are facing toward the recognizer.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="proceedConfirmButton" onclick="confirmCapture();">Proceed Now</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var classId = '@Model.ClassId';
+    var selectedRecognizerId;
+    var recognizerTaskId;
+    var allowProceed = false;
+    var init = true;
+    var read = false;
+    var recId;
+    var recStatus;
+    var recActivity;
+    var loadCycle;
+
+    function openCaptureModal() {
+        $('#captureConfirmationModal').modal('show');
+    }
+
+    function confirmCapture() {
+        clearInterval(loadCycle);
+        $('#captureConfirmationModal').modal('hide');
+        $('#recognizerInputFrame').fadeOut('fast');
+        $('#mainContent').fadeOut('fast');
+        $('#mainContent').html($('#recognizerConsole').html());
+        $('#mainContent').find('#consoleMsg').html('Sending instruction to device...');
+        $('#mainContent').fadeIn('fast', function () {
+            imageCapture();
+        });
+    }
+
+    function imageCapture() {
+        $.ajax({
+            url: '/Api/RecognizerTask/GroupImageCapture',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'classId': classId }),
+            success: function (responds) {
+                read = false;
+                $('#consoleMsg').fadeOut('slow', function () {
+                    recognizerTaskId = responds.recognizerTaskId;
+                    $('#consoleMsg').html('Instruction sent, awaiting reply from device...');
+                    $('#consoleMsg').fadeIn();
+                    loadCycle = setInterval(function () {
+                        $.ajax({
+                            url: '/Api/RecognizerTask/CheckStatusById',
+                            type: 'POST',
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: false,
+                            data: JSON.stringify({ 'recognizerTaskId': recognizerTaskId }),
+                            success: function (responds) {
+                                if (responds.status == "CANCELLED") {
+                                    clearInterval(loadCycle);
+                                    $('#consoleMsg').fadeOut('slow', function () {
+                                        $('#consoleMsg').html('Task has been cancelled.');
+                                        $('#consoleMsg').fadeIn('slow');
+                                    });
+                                } else if (responds.status == "READ") {
+                                    if (!read) {
+                                        read = true;
+                                        $('#consoleMsg').fadeOut('slow', function () {
+                                            $('#consoleMsg').html('Instruction received, processing your request...');
+                                            $('#consoleMsg').fadeIn('slow');
+                                        });
+                                    }
+                                } else if (responds.status == "DONE") {
+                                    clearInterval(loadCycle);
+                                    $('#consoleMsg').fadeOut('slow', function () {
+                                        $('#consoleMsg').html('Group images successfully captured, previewing images now...');
+                                        $('#consoleMsg').fadeIn('slow');
+                                    });
+                                    setTimeout(function () {
+                                        retrievePendingPhoto();
+                                    }, 3000);
+                                }
+                            },
+                            error: function (request, status, error) {
+                            }
+                        });
+                    }, 5000);
+                });
+            },
+            error: function (request, status, error) {
+                $('#consoleMsg').fadeOut('slow', function () {
+                    $('#consoleMsg').html('Capture error, please refresh the page and try again later.');
+                    $('#consoleMsg').fadeIn();
+                });
+            }
+        });
+    }
+
+    function retrievePendingPhoto() {
+        $.ajax({
+            url: '/Api/Class/RetrievePendingPhoto',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'classId': classId }),
+            success: function (responds) {
+                var count = 0;
+                $('#mainContent').fadeOut('fast', function () {
+                    $('#mainContent').html($('#imageGallery').html());
+                    $.each(responds.photos, function () {
+                        var url;
+                        $.each(this, function (key, value) {
+                            if (key == "url") {
+                                url = value;
+                            }
+                        });
+                        if (count == 0) {
+                            $('#mainContent').find('#imgCol1').append('<img src="'+url+'" style="width:100%;padding-bottom:20px;" />');
+                            count++;
+                        } else {
+                            $('#mainContent').find('#imgCol2').append('<img src="'+url+'" style="width:100%;padding-bottom:20px;" />');
+                            count = 0;
+                        }
+                    });
+                });
+                $('#mainContent').fadeIn('fast');
+            },
+            error: function (request, status, error) {
+            }
+        });
+    }
+
+    function selectRecognizer() {
+        init = true;
+        clearInterval(loadCycle);
+        selectedRecognizerId = $('#recognizerInput').val();
+        $('#mainContent').html($('#loadingPage').html());
+        $('#mainContent').attr('style', 'margin-top:50px;');
+        $('#mainContent').fadeIn('fast', function () {
+            getStatus();
+            loadCycle = setInterval(function () {
+                getStatus();
+            }, 5000);
+        });
+    }
+
+    function postSelectRecognizer() {
+        if (init) {
+            init = false;
+            $('#mainContent').fadeOut('slow', function () {
+                $('#mainContent').html($('#mainContentPlaceholder').html());
+                $('#mainContent').find('#displayRecId').html(recId);
+                $('#mainContent').find('#displayRecStatus').html(recStatus);
+                $('#mainContent').find('#displayRecActivity').html(recActivity);
+                $(this).fadeIn('slow');
+            });
+        } else {
+            $('#mainContent').find('#displayRecId').html(recId);
+            $('#mainContent').find('#displayRecStatus').html(recStatus);
+            $('#mainContent').find('#displayRecActivity').html(recActivity);
+        }
+    }
+
+    function getStatus() {
+        $.ajax({
+            url: '/Api/Recognizer/GetStatus',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'recognizerId': selectedRecognizerId, 'type': 'REGISTER_NEW_FACE' }),
+            success: function (responds) {
+                recId = responds.recognizerId;
+                recStatus = responds.recognizerStatus;
+                recActivity = responds.lastActivity;
+                postSelectRecognizer();
+                if (responds.Result == "TRAINING_IN_PROGRESS") {
+                    $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                    allowProceed = false;
+                } else {
+                    if (responds.recognizerStatus == "Idle" && allowProceed == false) {
+                        $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
+                        allowProceed = true;
+
+                    } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
+                        $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
+                        allowProceed = false;
+                    }
+                }
+            },
+            error: function (request, status, error) {
+            }
+        });
+    }
+</script>
