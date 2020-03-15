@@ -29,7 +29,7 @@
             {
                 <tr>
                     <td><a href="/Class/@item.Id">@item.Name</a></td>
-                    <td>@item.List_ClassAllocation.Count/@item.Capacity</td>
+                    <td>@item.List_ClassAllocation.Where(e => e.Deleted == false).Count()/@item.Capacity</td>
                     <td>@item.DateCreated</td>
                     <td><div class="btn btn-danger" onclick="removeClass('@item.Id', this);" id="@item.Id">Remove</div></td>
                 </tr>

@@ -47,7 +47,7 @@ namespace BCP_Facial.Controllers
             {
                 List<Attendance> classAttendances = thisClass.List_Attendances.Where(e => e.Deleted == false).ToList();
                 List <ClassEditAllocation> allocations = new List<ClassEditAllocation>();
-                foreach (ClassAllocation item in thisClass.List_ClassAllocation)
+                foreach (ClassAllocation item in thisClass.List_ClassAllocation.Where(e => e.Deleted == false))
                 {
                     List<AttendanceItem> studentAttendances =  item.Student.List_AttendanceItems.Where(e => classAttendances.Contains(e.Attendance)).ToList();
                     ClassEditAllocation newAllocation = new ClassEditAllocation()
@@ -60,6 +60,10 @@ namespace BCP_Facial.Controllers
 
                     allocations.Add(newAllocation);
                 }
+
+                model.SelectedLecturer = thisClass.Lecturer;
+                model.Lecturers = _db._BCPUsers.Where(e => e.Deleted == false).Where(e => e.Status == 2 || e.Status == 4).OrderBy(e => e.Name).ToList();
+                model.ClassCode = thisClass.ClassCode.ToUpper();
                 model.ClassId = thisClass.Id;
                 model.ClassName = thisClass.Name;
                 model.ClassAllocations = allocations;

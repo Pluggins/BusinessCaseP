@@ -141,5 +141,105 @@ namespace BCP_Facial.Controllers.Api
 
             return output;
         }
+
+        [HttpPost]
+        [Route("Api/Class/Change")]
+        public ClassInfoOutput Change([FromBody] ClassInfoInput input)
+        {
+            ClassInfoOutput output = new ClassInfoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsAdmin)
+                {
+                    Class thisClass = _db.Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+                    if (thisClass == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CLASS_NOT_EXIST";
+                    } else
+                    {
+                        BCPUser lecturer = _db._BCPUsers.Where(e => e.Id.Equals(input.LecturerId) && e.Deleted == false).Where(e => e.Status == 2 || e.Status == 4).FirstOrDefault();
+                        if (lecturer == null && !string.IsNullOrEmpty(input.LecturerId))
+                        {
+                            Response.StatusCode = 400;
+                            output.Result = "LECTURER_NOT_EXIST";
+                        } else
+                        {
+                            thisClass.Name = input.ClassName;
+                            if (string.IsNullOrEmpty(input.LecturerId))
+                            {
+                                thisClass.Lecturer = null;
+                            } else
+                            {
+                                thisClass.Lecturer = lecturer;
+                            }
+
+                            _db.SaveChanges();
+                            output.Result = "OK";
+                        }
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
+
+        [HttpPost]
+        [Route("Api/Class/RemoveStudent")]
+        public ClassInfoOutput RemoveStudent([FromBody] ClassInfoInput input)
+        {
+            ClassInfoOutput output = new ClassInfoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                AspUserService aspUser = new AspUserService(_db, this);
+                if (aspUser.IsAdmin)
+                {
+                    Class thisClass = _db.Classes.Where(e => e.Id.Equals(input.ClassId) && e.Deleted == false).FirstOrDefault();
+                    if (thisClass == null)
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "CLASS_NOT_EXIST";
+                    } else
+                    {
+                        List<ClassAllocation> classAllocationList = thisClass.List_ClassAllocation.Where(e => e.Student.Id.Equals(input.StudentId) && e.Deleted == false).ToList();
+                        if (classAllocationList.Count() > 0)
+                        {
+                            foreach(ClassAllocation item in classAllocationList)
+                            {
+                                item.Deleted = true;
+                            }
+
+                            _db.SaveChanges();
+                            output.Result = "OK";
+                        } else
+                        {
+                            Response.StatusCode = 400;
+                            output.Result = "STUDENT_NOT_IN_CLASS";
+                        }
+                    }
+                } else
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "NO_PRIVILEGE";
+                }
+            }
+
+            return output;
+        }
     }
 }
