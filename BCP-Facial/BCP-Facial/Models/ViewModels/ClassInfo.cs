@@ -12,6 +12,7 @@ namespace BCP_Facial.Models.ViewModels
         public string ClassCode { get; set; }
         public string LecturerId { get; set; }
         public string StudentId { get; set; }
+        public int Capacity { get; set; }
     }
     public class ClassInfoOutput
     {

@@ -26,6 +26,12 @@
                             <input class="form-control" value="@Model.ClassCode" id="classCodeInput" style="width: 200px;" readonly />
                         </div>
                     </div>
+                    <div style="margin-left:20px; float:left;">
+                        <div style="margin-bottom:5px;">Capacity</div>
+                        <div>
+                            <input class="form-control" type="number" min="0" value="@Model.ClassCapacity" id="classCapacityInput" style="width: 200px;" readonly />
+                        </div>
+                    </div>
                     <div style="float:right;">
                         <div class="btn btn-warning" id="editBtn" onclick="editClassInfo();">Edit</div>
                         <div class="btn btn-primary" style="display: none;" id="saveBtn" onclick="saveClassInfo();">Save</div>
@@ -146,6 +152,7 @@
         $('#editBtn').hide();
         $('#saveBtn').show();
         $('#classNameInput').removeAttr('readonly');
+        $('#classCapacityInput').removeAttr('readonly');
         $('#lecturerInput').removeAttr('disabled');
     }
 
@@ -160,7 +167,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 async: false,
-                data: JSON.stringify({ 'classId': classId, 'lecturerId': $('#lecturerInput').val(), 'className': $('#classNameInput').val() }),
+                data: JSON.stringify({ 'classId': classId, 'lecturerId': $('#lecturerInput').val(), 'className': $('#classNameInput').val(), 'capacity': $('#classCapacityInput').val() }),
                 success: function (responds) {
                     if (responds.result == "OK") {
                         $('#saveBtn').attr('class', 'btn btn-success disabled');

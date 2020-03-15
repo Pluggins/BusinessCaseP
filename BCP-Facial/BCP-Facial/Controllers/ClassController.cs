@@ -61,6 +61,7 @@ namespace BCP_Facial.Controllers
                     allocations.Add(newAllocation);
                 }
 
+                model.ClassCapacity = thisClass.Capacity.ToString();
                 model.SelectedLecturer = thisClass.Lecturer;
                 model.Lecturers = _db._BCPUsers.Where(e => e.Deleted == false).Where(e => e.Status == 2 || e.Status == 4).OrderBy(e => e.Name).ToList();
                 model.ClassCode = thisClass.ClassCode.ToUpper();

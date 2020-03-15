@@ -10,6 +10,7 @@ namespace BCP_Facial.Models.ViewModels
         public string ClassCode { get; set; }
         public string ClassId { get; set; }
         public string ClassName { get; set; }
+        public string ClassCapacity { get; set; }
         public BCPUser SelectedLecturer { get; set; }
         public List<BCPUser> Lecturers { get; set; }
         public List<ClassEditAllocation> ClassAllocations { get; set; }

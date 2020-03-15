@@ -171,6 +171,7 @@ namespace BCP_Facial.Controllers.Api
                             output.Result = "LECTURER_NOT_EXIST";
                         } else
                         {
+                            thisClass.Capacity = input.Capacity;
                             thisClass.Name = input.ClassName;
                             if (string.IsNullOrEmpty(input.LecturerId))
                             {
