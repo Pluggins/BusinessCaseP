@@ -34,9 +34,9 @@
 <div style="padding:30px 50px;">
     <div class="bread-crumb"><span><a href="/Student">Students</a></span><span class="bread-separator">-></span><span><a href="/Student/@Model.Student.StudentId">@Model.Student.StudentName</a></span><span class="bread-separator">-></span><span class="bread-target"><a href="/Student/SetClass/@Model.Student.StudentId">Set Class</a></span></div>
     <div style="height:50px;">
-        <div class="btn btn-warning float-right" onclick="addLecturer();">Add To Class</div>
+        <div class="btn btn-warning float-right" onclick="addToClassModal();">Add To Class</div>
     </div>
-    <table class="table table-striped table-bordered" style="background-color:white;" id="lecturerList">
+    <table class="table table-striped table-bordered" style="background-color:white;" id="classList">
         <thead>
             <tr>
                 <th>Class Name</th>
@@ -56,3 +56,137 @@
         </tbody>
     </table>
 </div>
+
+<div class="modal fade" id="addClassModal" tabindex="-1" role="dialog" aria-labelledby="setClassModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered pr-md-5 pl-md-5" role="document">
+        <div class="modal-content">
+            <div style="background-color:#ffb26e1f;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add Student To Class</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <div class="form-box">
+                                <div>
+                                    <label for="Name">Class Code:</label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="ClassCode" type="text" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="errorFrame" style="display:none;">
+                                <div id="errorMsg">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="setClassButton" onclick="addToClass();">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var studentId = '@Model.Student.StudentId';
+    var addingClass = false;
+
+    $(document).ready(function () {
+        $('#classList').DataTable({
+            'order': [[2, "asc"]],
+            "columnDefs": [
+                { "width": "300px", "targets": 0 },
+                { "width": "150px", "targets": 1 },
+                { "width": "100px", "targets": 2 }
+            ],
+        });
+    });
+
+    $('#ClassCode').on("keypress", function (e) {
+        if (e.which == 13) {
+            addToClass();
+        }
+    });
+
+    function reinitialize() {
+        $('#ClassCode').val('');
+        $('#errorFrame').hide();
+    }
+
+    function addToClassModal() {
+        reinitialize();
+        $('#addClassModal').modal('show');
+        setTimeout(function () { document.getElementById('ClassCode').focus(); }, 500);
+    }
+
+    function addToClass() {
+        if ($('#ClassCode').val().length > 0) {
+            if (!addingClass) {
+                addingClass = true;
+                $('#setClassButton').attr('class', 'btn btn-primary disabled');
+                $('#setClassButton').html('<i class="fas fa-spinner fa-spin"></i>');
+                $.ajax({
+                    url: '/Api/Student/AddToClass',
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    async: false,
+                    data: JSON.stringify({ 'studentId': studentId, 'classCode': $('#ClassCode').val() }),
+                    success: function (responds) {
+                        if (responds.result == "OK") {
+                            $('#setClassButton').attr('class', 'btn btn-success disabled');
+                            $('#setClassButton').html('Added');
+                            setTimeout(function () { window.location.replace('/Student/SetClass/' + studentId); }, 2000);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        var json = JSON.parse(request.responseText);
+                        if (json.result == 'INPUT_IS_NULL') {
+                            $('#setClassButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#setClassButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Please input the class code.</div>');
+                            addingClass = false;
+                        } else if (json.result == 'NO_PRIVILEGE') {
+                            $('#setClassButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#setClassButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: Wrong credential.</div>');
+                            addingClass = false;
+                        } else if (json.result == 'CLASS_NOT_EXIST') {
+                            $('#setClassButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#setClassButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: Class code is invalid.</div>');
+                            addingClass = false;
+                        } else if (json.result == 'ALREADY_ADDED') {
+                            $('#setClassButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#setClassButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: The student has already been added to class.</div>');
+                            addingClass = false;
+                        } else {
+                            $('#setClassButton').html('Add');
+                            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+                            $('#setClassButton').attr('class', 'btn btn-primary shadow-none');
+                            $('#errorMsg').html('<div style="text-align: center;">Error: Please try again later.</div>');
+                            addingClass = false;
+                        }
+                    }
+                });
+            }
+        } else {
+            $('#errorFrame').attr('style', 'background-color: #ffe6e5; border-radius: 5px; border: 1px solid #9f9292; padding:10px 20px; margin-top:20px;')
+            $('#errorMsg').html('<div style="text-align: center;">Please enter the class code.</div>');
+        }
+    }
+</script>

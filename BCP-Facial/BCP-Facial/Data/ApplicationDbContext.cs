@@ -35,6 +35,9 @@ namespace BCP_Facial.Data
             builder.Entity<BCPUser>()
                 .HasIndex(e => e.Email)
                 .IsUnique(true);
+            builder.Entity<Class>()
+                .HasIndex(e => e.ClassCode)
+                .IsUnique(true);
             builder.Entity<IdentityRole>()
                 .HasData(
                 new IdentityRole { Id = LecturerGuid, Name = "LECTURER", NormalizedName = "LECTURER" },

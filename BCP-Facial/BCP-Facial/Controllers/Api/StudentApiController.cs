@@ -494,5 +494,64 @@ namespace BCP_Facial.Controllers.Api
 
             return output;
         }
+
+        [HttpPost]
+        [Route("Api/Student/AddToClass")]
+        public StudentInfoOutput AddToClass([FromBody] StudentInfoInput input)
+        {
+            StudentInfoOutput output = new StudentInfoOutput();
+
+            if (input == null)
+            {
+                Response.StatusCode = 400;
+                output.Result = "INPUT_IS_NULL";
+            } else
+            {
+                Class thisClass = _db.Classes.Where(e => e.ClassCode.ToUpper().Equals(input.ClassCode.ToUpper()) && e.Deleted == false).FirstOrDefault();
+                if (thisClass == null)
+                {
+                    Response.StatusCode = 400;
+                    output.Result = "CLASS_NOT_EXIST";
+                } else
+                {
+                    AspUserService aspUser = new AspUserService(_db, this);
+                    if (aspUser.IsAdmin)
+                    {
+                        BCPUser student = _db._BCPUsers.Where(e => e.Id.Equals(input.StudentId) && e.Deleted == false).FirstOrDefault();
+                        if (student == null)
+                        {
+                            Response.StatusCode = 400;
+                            output.Result = "STUDENT_NOT_EXIST";
+                        }
+                        else
+                        {
+                            ClassAllocation ca = _db.ClassAllocations.Where(e => e.Class == thisClass && e.Student == student && e.Deleted == false).FirstOrDefault();
+                            if (ca == null)
+                            {
+                                ClassAllocation newCa = new ClassAllocation()
+                                {
+                                    Class = thisClass,
+                                    Student = student
+                                };
+
+                                _db.ClassAllocations.Add(newCa);
+                                _db.SaveChanges();
+                                output.Result = "OK";
+                            } else
+                            {
+                                Response.StatusCode = 400;
+                                output.Result = "ALREAD_ADDED";
+                            }
+                        }
+                    } else
+                    {
+                        Response.StatusCode = 400;
+                        output.Result = "NO_PRIVILEGE";
+                    }
+                }
+            }
+
+            return output;
+        }
     }
 }

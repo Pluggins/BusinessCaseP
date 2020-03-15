@@ -12,7 +12,8 @@ namespace BCP_Facial.Models
     {
         [Key]
         public string Id { get; set; }
-        public virtual ClassAllocation Student { get; set; }
+        public virtual BCPUser Student { get; set; }
+        public virtual Attendance Attendance { get; set; }
 
         public AttendanceItem()
         {

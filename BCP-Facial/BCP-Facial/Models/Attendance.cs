@@ -12,7 +12,7 @@ namespace BCP_Facial.Models
     {
         [Key]
         public string Id { get; set; }
-        public virtual AttendanceItem AttendanceItem { get; set; }
+        public virtual ICollection<AttendanceItem> List_AttendanceItems { get; set; }
         public virtual Class Class { get; set; }
 
         public Attendance()

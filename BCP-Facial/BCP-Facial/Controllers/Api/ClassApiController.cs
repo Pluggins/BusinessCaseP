@@ -40,22 +40,32 @@ namespace BCP_Facial.Controllers.Api
                     output.Result = "INPUT_IS_NULL";
                 } else
                 {
-                    if (string.IsNullOrEmpty(input.ClassName))
+                    if (string.IsNullOrEmpty(input.ClassName) || string.IsNullOrEmpty(input.ClassCode))
                     {
                         Response.StatusCode = 400;
                         output.Result = "INPUT_IS_NULL";
                     } else
                     {
-                        Class newClass = new Class()
+                        Class thisClass = _db.Classes.Where(e => e.ClassCode.ToUpper().Equals(input.ClassCode.ToUpper()) && e.Deleted == false).FirstOrDefault();
+
+                        if (thisClass == null)
                         {
-                            Name = input.ClassName,
-                            CreatedBy = aspUser.User.Id
-                        };
+                            Class newClass = new Class()
+                            {
+                                Name = input.ClassName,
+                                ClassCode = input.ClassCode.ToUpper(),
+                                CreatedBy = aspUser.User.Id
+                            };
 
-                        output.Result = "OK";
+                            output.Result = "OK";
 
-                        _db.Classes.Add(newClass);
-                        _db.SaveChanges();
+                            _db.Classes.Add(newClass);
+                            _db.SaveChanges();
+                        } else
+                        {
+                            Response.StatusCode = 400;
+                            output.Result = "CLASS_EXIST";
+                        }
                     }
                 }
             } else

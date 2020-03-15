@@ -9,6 +9,7 @@ namespace BCP_Facial.Models.ViewModels
     {
         public string ClassId { get; set; }
         public string ClassName { get; set; }
+        public string ClassCode { get; set; }
     }
     public class ClassInfoOutput
     {

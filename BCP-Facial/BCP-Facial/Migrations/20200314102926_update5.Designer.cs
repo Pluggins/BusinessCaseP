@@ -4,14 +4,16 @@ using BCP_Facial.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BCP_Facial.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200314102926_update5")]
+    partial class update5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,6 +24,9 @@ namespace BCP_Facial.Migrations
             modelBuilder.Entity("BCP_Facial.Models.Attendance", b =>
                 {
                     b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AttendanceItemId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ClassId")
@@ -35,6 +40,8 @@ namespace BCP_Facial.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AttendanceItemId");
+
                     b.HasIndex("ClassId");
 
                     b.ToTable("Attendances");
@@ -43,9 +50,6 @@ namespace BCP_Facial.Migrations
             modelBuilder.Entity("BCP_Facial.Models.AttendanceItem", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("AttendanceId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("DateCreated")
@@ -58,8 +62,6 @@ namespace BCP_Facial.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttendanceId");
 
                     b.HasIndex("StudentId");
 
@@ -327,14 +329,14 @@ namespace BCP_Facial.Migrations
                         new
                         {
                             Id = "EF7A8FDE-0005-4085-B26F-37D7278BE768",
-                            ConcurrencyStamp = "d0b7ac2d-2104-4821-968d-2df57838951f",
+                            ConcurrencyStamp = "2e8cf3ae-ab7a-413d-a6e9-5fed9a38d808",
                             Name = "LECTURER",
                             NormalizedName = "LECTURER"
                         },
                         new
                         {
                             Id = "4FBD4989-DF6E-479A-AE7D-641700E09A84",
-                            ConcurrencyStamp = "0aaa74a0-0f7f-4974-b8af-de367cf6bc4e",
+                            ConcurrencyStamp = "41a47e16-27c6-4534-8261-ca932a68978e",
                             Name = "ADMIN",
                             NormalizedName = "ADMIN"
                         });
@@ -515,19 +517,19 @@ namespace BCP_Facial.Migrations
 
             modelBuilder.Entity("BCP_Facial.Models.Attendance", b =>
                 {
+                    b.HasOne("BCP_Facial.Models.AttendanceItem", "AttendanceItem")
+                        .WithMany()
+                        .HasForeignKey("AttendanceItemId");
+
                     b.HasOne("BCP_Facial.Models.Class", "Class")
-                        .WithMany("List_Attendances")
+                        .WithMany()
                         .HasForeignKey("ClassId");
                 });
 
             modelBuilder.Entity("BCP_Facial.Models.AttendanceItem", b =>
                 {
-                    b.HasOne("BCP_Facial.Models.Attendance", "Attendance")
-                        .WithMany("List_AttendanceItems")
-                        .HasForeignKey("AttendanceId");
-
-                    b.HasOne("BCP_Facial.Models.BCPUser", "Student")
-                        .WithMany("List_AttendanceItems")
+                    b.HasOne("BCP_Facial.Models.ClassAllocation", "Student")
+                        .WithMany()
                         .HasForeignKey("StudentId");
                 });
 

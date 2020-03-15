@@ -11,6 +11,7 @@ namespace BCP_Facial.Models.ViewModels
         public string RecognizerKey { get; set; }
         public string StudentId { get; set; }
         public string ImageUrl { get; set; }
+        public string ClassCode { get; set; }
     }
     public class StudentInfoOutput
     {
