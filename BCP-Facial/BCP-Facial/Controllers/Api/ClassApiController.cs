@@ -349,7 +349,6 @@ namespace BCP_Facial.Controllers.Api
         public async Task<ClassInfoOutput> ProcessPhoto([FromBody] ClassInfoInput input)
         {
             ClassInfoOutput output = new ClassInfoOutput();
-            bool failure = false;
 
             AspUserService aspUser = new AspUserService(_db, this);
             if (input == null)
@@ -396,7 +395,7 @@ namespace BCP_Facial.Controllers.Api
                                     faceIds.Add((string)obj.faceId);
                                 } catch (RuntimeBinderException e)
                                 {
-
+                                    e.ToString();
                                 }
                                 
                             }
@@ -447,12 +446,34 @@ namespace BCP_Facial.Controllers.Api
                                     }
                                 } catch (RuntimeBinderException e)
                                 {
-
+                                    e.ToString();
                                 }
                                 
                             }
                             multiple++;
                         }
+
+                        Attendance newAttendance = new Attendance()
+                        {
+                            Class = thisClass
+                        };
+
+                        _db.Attendances.Add(newAttendance);
+                        foreach (ClassAllocation item in thisClass.List_ClassAllocation.Where(e => e.Deleted == false))
+                        {
+                            if (personIds.Contains(item.Student.PersonId))
+                            {
+                                AttendanceItem newAttendanceItem = new AttendanceItem()
+                                {
+                                    Student = item.Student,
+                                    Attendance = newAttendance
+                                };
+
+                                _db.AttendanceItems.Add(newAttendanceItem);
+                            }
+                        }
+
+                        _db.SaveChanges();
                     }
                 }
                 else

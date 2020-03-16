@@ -5,6 +5,8 @@
 
 <input type="file" id="imageUpload" onchange="uploadImg();" />
 
+<input type="file" id="imageUpload2" onchange="uploadImg2();" />
+
 <script>
     function uploadImg() {
         var formData = new FormData();
@@ -30,12 +32,49 @@
 
     function linkImg(url) {
         $.ajax({
-            url: '/Api/Class/AddPhoto',
+            url: '/Api/Student/AddPhoto',
             type: 'POST',
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             async: false,
-            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'classId': '62613087-9c91-4b48-82c3-041376819d3a', 'ImageUrl': url }),
+            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'studentId': '44ed1200-074a-43a1-a1cf-e8974c25c426', 'ImageUrl': url }),
+            success: function (data) {
+            },
+            error: function (data) {
+            }
+        });
+    }
+
+    function uploadImg2() {
+        var formData = new FormData();
+        var data = document.getElementById('imageUpload2');
+        formData.append('base64image', data.files[0]);
+        addingRoom = true;
+        $('#ConfirmButton').attr('class', 'btn btn-primary disabled');
+        $('#ConfirmButton').html('<i class="fas fa-spinner fa-spin"></i>');
+        $.ajax({
+            type: 'POST',
+            url: '/Api/Recognizer/UploadImage',
+            data: formData,
+            processData: false,
+            contentType: false,
+            async: false,
+            success: function (data) {
+                linkImg2(data.url);
+            },
+            error: function (data) {
+            }
+        });
+    }
+
+    function linkImg2(url) {
+        $.ajax({
+            url: '/Api/Student/AddPhoto',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({ 'RecognizerId': '692A545E-C2D2-4D0A-940A-78EDE88BF7CD', 'RecognizerKey': 'E45FE797-8757-4CC5-9D4D-170946F5A2C6', 'studentId': 'c64600c1-d5d4-41b0-a800-f0372ab52fbd', 'ImageUrl': url }),
             success: function (data) {
             },
             error: function (data) {
