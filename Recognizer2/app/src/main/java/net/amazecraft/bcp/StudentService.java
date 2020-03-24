@@ -112,6 +112,7 @@ public class StudentService {
                 tmpObj.put("recognizerKey", MainActivity.getRecognizerKey());
                 tmpObj.put("recognizerTaskId", StudentService.getTaskId());
                 RequestService.RequestJSON("https://bcp.amazecraft.net/Api/Recognizer/MarkTaskComplete", tmpObj);
+                MainActivity.turnOnLoading();
             } catch (JSONException e) {
                 e.printStackTrace();
             }

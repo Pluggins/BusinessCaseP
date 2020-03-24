@@ -7,12 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -50,24 +52,23 @@ public class MainActivity extends AppCompatActivity  {
         StrictMode.setThreadPolicy(policy);
 
         capture = (Button) findViewById(R.id.btnCam);
-        capture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mCamera.takePicture(null, null, mPicture);
-            }
-        });
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         myContext = this;
 
         mCamera =  Camera.open();
-        mCamera.setDisplayOrientation(0);
         mPicture = getPictureCallback();
         cameraPreview = (LinearLayout) findViewById(R.id.cPreview);
         mPreview = new CameraPreview(myContext, mCamera);
         cameraPreview.addView(mPreview);
-        mCamera.startPreview();
-        mCamera.setDisplayOrientation(90);
+        SurfaceTexture st = new SurfaceTexture(MODE_PRIVATE);
+        try {
+            mCamera.setPreviewTexture(st);
+            mCamera.startPreview();
+            changeDimensionHorizontal();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         timer = new Timer();
         TimerTask task = new TimerTask() {
@@ -147,39 +148,12 @@ public class MainActivity extends AppCompatActivity  {
         super.onResume();
         if(mCamera == null) {
             mCamera = Camera.open();
-            mCamera.setDisplayOrientation(90);
             mPreview.refreshCamera(mCamera);
             Log.d("nu", "null");
         }else {
             Log.d("nu","no null");
         }
 
-    }
-
-    public void chooseCamera() {
-        //if the camera preview is the front
-        if (cameraFront) {
-            int cameraId = findBackFacingCamera();
-            if (cameraId >= 0) {
-                //open the backFacingCamera
-                //set a picture callback
-                //refresh the preview
-
-                mCamera = Camera.open(cameraId);
-                mCamera.setDisplayOrientation(90);
-                mPreview.refreshCamera(mCamera);
-            }
-        } else {
-            int cameraId = findFrontFacingCamera();
-            if (cameraId >= 0) {
-                //open the backFacingCamera
-                //set a picture callback
-                //refresh the preview
-                mCamera = Camera.open(cameraId);
-                mCamera.setDisplayOrientation(90);
-                mPreview.refreshCamera(mCamera);
-            }
-        }
     }
 
     @Override
@@ -203,6 +177,8 @@ public class MainActivity extends AppCompatActivity  {
         Camera.PictureCallback picture = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                    mCamera.startPreview();
+
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 if (taskId == 1) {
                     String s = RequestService.RequestImage("https://bcp.amazecraft.net/Api/Recognizer/UploadImage", bitmap);
@@ -254,11 +230,28 @@ public class MainActivity extends AppCompatActivity  {
                 JSONObject result = new JSONObject(message);
                 String s = result.getString("result");
                 if (s.equals("OK")) {
+
+                    //Get phone orientation
+                    Camera.CameraInfo info = new Camera.CameraInfo();
+                    Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
+                    int rotation = getWindowManager().getDefaultDisplay().getRotation();
+                    int degrees = 0;
+                    switch (rotation) {
+                        case Surface.ROTATION_0: degrees = 0; break; //Natural orientation
+                        case Surface.ROTATION_90: degrees = 90; break; //Landscape left
+                        case Surface.ROTATION_180: degrees = 180; break;//Upside down
+                        case Surface.ROTATION_270: degrees = 270; break;//Landscape right
+                    }
+                    int rotate = (info.orientation - degrees + 360) % 360;
+
+                    Camera.Parameters params = mCamera.getParameters();
+                    params.setRotation(rotate);
+                    mCamera.setParameters(params);
+
                     stopLoading = true;
                     String c = result.getString("command");
                     if (c.equals("REGISTER_NEW_FACE")) {
                         taskId = 1;
-                        changeDimensionVertical();
                         StudentService.clear();
                         StudentService.setTaskId(result.getString("taskId"));
                         StudentService.setStudentId(result.getString("primaryValue"));
@@ -266,7 +259,6 @@ public class MainActivity extends AppCompatActivity  {
                         StudentService.execute();
                     } else if (c.equals("CAPTURE_CLASS_IMAGE")) {
                         taskId = 2;
-                        changeDimensionHorizontal();
                         ClassService.clear();
                         ClassService.setTaskId(result.getString("taskId"));
                         ClassService.setClassId(result.getString("primaryValue"));
