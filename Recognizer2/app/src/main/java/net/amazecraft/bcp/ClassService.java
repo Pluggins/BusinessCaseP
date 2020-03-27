@@ -120,7 +120,6 @@ public class ClassService {
         @Override
         protected void onPostExecute(String message) {
             ClassService.clear();
-            MainActivity.turnOffLoading();
         }
     }
 }
