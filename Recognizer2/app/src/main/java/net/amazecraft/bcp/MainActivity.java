@@ -30,8 +30,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity  {
-    private static final String recognizerId = "692A545E-C2D2-4D0A-940A-78EDE88BF7CD";
-    private static final String recognizerKey = "E45FE797-8757-4CC5-9D4D-170946F5A2C6";
+    private static final String recognizerId = "E5CE0AD5-C0B2-481C-A377-69EB860C237D";
+    private static final String recognizerKey = "AE9DD32F-0DC2-4FC4-9BD0-FD8A95673F82";
     private static Camera mCamera;
     private CameraPreview mPreview;
     private static Camera.PictureCallback mPicture;

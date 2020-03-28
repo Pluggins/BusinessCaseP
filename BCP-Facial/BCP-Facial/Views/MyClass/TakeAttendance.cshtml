@@ -269,11 +269,11 @@
                     $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
                     allowProceed = false;
                 } else {
-                    if (responds.recognizerStatus == "Idle" && allowProceed == false) {
+                    if (responds.recognizerStatus == "Idle") {
                         $('#recognizerBtnFrame').html($('#activeRecognizerBtn').html());
                         allowProceed = true;
 
-                    } else if (responds.recognizerStatus != "Idle" && allowProceed == true) {
+                    } else if (responds.recognizerStatus != "Idle") {
                         $('#recognizerBtnFrame').html($('#busyRecognizerBtn').html());
                         allowProceed = false;
                     }

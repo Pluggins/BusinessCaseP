@@ -12,6 +12,7 @@ namespace BCP_Facial.Services
         public Recognizer Recognizer { get; set; }
         public bool IsAuthentic { get; set; } = false;
         public bool IsExist { get; set; }
+        public ApplicationDbContext _db { get; set; }
 
         public RecognizerService(string RecognizerId, ApplicationDbContext db)
         {
@@ -23,6 +24,8 @@ namespace BCP_Facial.Services
             {
                 IsExist = true;
             }
+
+            _db = db;
         }
 
         public RecognizerService(string RecognizerId, string RecognizerKey, ApplicationDbContext db)
@@ -40,6 +43,8 @@ namespace BCP_Facial.Services
 
                 IsExist = true;
             }
+
+            _db = db;
         }
 
         public RecognizerTask GetLastUnreadTask()
@@ -57,9 +62,15 @@ namespace BCP_Facial.Services
                     return "Idle";
                 } else if (task.Command == "REGISTER_NEW_FACE")
                 {
+                    CheckExpiry();
                     return "Registering face";
+                } else if (task.Command == "CAPTURE_CLASS_IMAGE")
+                {
+                    CheckExpiry();
+                    return "Capturing class image";
                 } else
                 {
+                    CheckExpiry();
                     return "Unknown";
                 }
             } else
@@ -95,6 +106,18 @@ namespace BCP_Facial.Services
             {
                 return Math.Floor(duration.TotalDays) + " Day(s)";
             }
+        }
+
+        public void CheckExpiry()
+        {
+            RecognizerTask task = Recognizer.List_RecognizerTask.Where(e => e.Deleted == false).OrderByDescending(e => e.DateModified).FirstOrDefault();
+            TimeSpan timeSpan = DateTime.UtcNow.AddHours(8) - task.DateModified;
+            if (timeSpan.TotalMinutes > 5)
+            {
+                task.Status = 0;
+            }
+
+            _db.SaveChanges();
         }
     }
 }

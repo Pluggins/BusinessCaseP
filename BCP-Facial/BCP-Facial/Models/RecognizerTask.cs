@@ -15,6 +15,7 @@ namespace BCP_Facial.Models
         /*
          * Command
          * - REGISTER_NEW_FACE
+         * - CAPTURE_CLASS_IMAGE
          */
         public string Command { get; set; }
         public string PrimaryValue { get; set; }
