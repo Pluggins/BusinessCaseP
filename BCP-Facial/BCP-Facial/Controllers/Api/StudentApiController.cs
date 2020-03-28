@@ -201,9 +201,15 @@ namespace BCP_Facial.Controllers.Api
                                             {
                                                 respond = await response.Content.ReadAsStringAsync();
 
-                                                jsonObj = JsonConvert.DeserializeObject(respond);
-                                                item.Status = 0;
-                                                faceIdToCompare = jsonObj[0].faceId;
+                                                try
+                                                {
+                                                    jsonObj = JsonConvert.DeserializeObject(respond);
+                                                    item.Status = 0;
+                                                    faceIdToCompare = jsonObj[0].faceId;
+                                                } catch (ArgumentOutOfRangeException e)
+                                                {
+                                                    e.ToString();
+                                                }
                                             }
 
                                             _db.SaveChanges();

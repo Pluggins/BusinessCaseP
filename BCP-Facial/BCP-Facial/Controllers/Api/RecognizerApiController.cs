@@ -2,6 +2,9 @@
 using BCP_Facial.Models;
 using BCP_Facial.Models.ViewModels;
 using BCP_Facial.Services;
+using ImageProcessor;
+using ImageProcessor.Imaging;
+using ImageProcessor.Imaging.Formats;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -34,7 +39,7 @@ namespace BCP_Facial.Controllers.Api
         [AllowAnonymous]
         [HttpPost]
         [Route("Api/Recognizer/UploadImage")]
-        public async Task<ImageUploadOutput> UploadImage()
+        public ImageUploadOutput UploadImage()
         {
             ImageUploadOutput output = new ImageUploadOutput();
 
@@ -43,6 +48,8 @@ namespace BCP_Facial.Controllers.Api
             {
                 if (item != null && item.Length > 0)
                 {
+                    ImageService imageS = new ImageService();
+                    
                     string id = Guid.NewGuid().ToString();
                     string[] ext = item.FileName.Split('.');
                     string part1 = "wwwroot";
@@ -51,9 +58,19 @@ namespace BCP_Facial.Controllers.Api
                     string url = _hostingEnvironment.ContentRootPath;
                     string path = Path.Combine(url, fileName);
 
+                    ISupportedImageFormat format = new PngFormat { Quality = 70, IsIndexed = false };
+                    System.Drawing.Image img = System.Drawing.Image.FromStream(item.OpenReadStream(), true, true);
+                    ResizeLayer rl = new ResizeLayer(new System.Drawing.Size(512, 1024), ResizeMode.Crop);
+                    img.Save(path, ImageFormat.Png);
                     using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
-                        await item.CopyToAsync(fs);
+                        using (ImageFactory imageFactory = new ImageFactory(preserveExifData: false))
+                        {
+                            imageFactory.Load(img)
+                                .Resize(rl)
+                                .Format(format)
+                                .Save(fs);
+                        }
                         output.Url = "recognizer/" + id + "." + ext[ext.Length - 1];
                     }
                 }
