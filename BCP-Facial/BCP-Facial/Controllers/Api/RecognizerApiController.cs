@@ -48,8 +48,6 @@ namespace BCP_Facial.Controllers.Api
             {
                 if (item != null && item.Length > 0)
                 {
-                    ImageService imageS = new ImageService();
-                    
                     string id = Guid.NewGuid().ToString();
                     string[] ext = item.FileName.Split('.');
                     string part1 = "wwwroot";
@@ -61,7 +59,6 @@ namespace BCP_Facial.Controllers.Api
                     ISupportedImageFormat format = new PngFormat { Quality = 70, IsIndexed = false };
                     System.Drawing.Image img = System.Drawing.Image.FromStream(item.OpenReadStream(), true, true);
                     ResizeLayer rl = new ResizeLayer(new System.Drawing.Size(512, 1024), ResizeMode.Crop);
-                    img.Save(path, ImageFormat.Png);
                     using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
                         using (ImageFactory imageFactory = new ImageFactory(preserveExifData: false))
